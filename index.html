@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Guidopractor</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#eef2f7; --surface:#fff; --surface2:#f4f7fb;
+  --border:#dde3ed; --text:#1a2a3a; --muted:#5e7491;
+  --primary:#2563eb; --primary-l:#dbeafe;
+  --ok:#059669; --ok-l:#d1fae5;
+  --warn:#d97706; --warn-l:#fef3c7;
+  --bad:#dc2626; --bad-l:#fee2e2;
+  --r:12px; --rs:8px; --nav:64px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+}
+[data-theme=dark]{
+  --bg:#0b1320; --surface:#162032; --surface2:#0f1a2b;
+  --border:#243349; --text:#e2eaf4; --muted:#7a96b4;
+  --primary-l:#1a3060; --ok-l:#064e3b; --warn-l:#451a03; --bad-l:#450a0a;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);
+  padding-top:52px;
+  padding-bottom:calc(var(--nav) + var(--safe-b));
+  min-height:100vh;
+}
+/* HEADER */
+#hdr{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  height:52px;background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;padding-top:var(--safe-t);
+  box-shadow:0 1px 8px rgba(0,0,0,.06);
+}
+#hdr h1{font-size:17px;font-weight:700;color:var(--primary)}
+.hbtn{
+  width:38px;height:38px;border-radius:50%;border:none;
+  background:var(--surface2);color:var(--text);
+  font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+/* NAV */
+#nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  height:calc(var(--nav) + var(--safe-b));
+  background:var(--surface);border-top:1px solid var(--border);
+  display:flex;align-items:flex-start;padding-bottom:var(--safe-b);
+}
+.ni{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding-top:8px;gap:3px;border:none;background:none;
+  color:var(--muted);font-size:10px;font-weight:500;cursor:pointer;
+}
+.ni .ico{font-size:22px}
+.ni.on{color:var(--primary)}
+/* MAIN */
+#main{max-width:520px;margin:0 auto;padding:14px 14px 8px}
+/* CARD */
+.card{background:var(--surface);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+/* BUTTONS */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:12px 18px;border-radius:var(--rs);border:none;
+  font-size:15px;font-weight:600;cursor:pointer;width:100%;
+  font-family:inherit;transition:opacity .1s;
+}
+.btn:active{opacity:.8}
+.bp{background:var(--primary);color:#fff}
+.bg{background:var(--surface2);color:var(--text)}
+.bo{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
+.bs{background:var(--ok);color:#fff}
+.bd{background:var(--bad);color:#fff}
+.bsm{padding:8px 13px;font-size:13px}
+.row{display:flex;gap:8px}
+.row .btn{flex:1}
+/* FIELD */
+.f{margin-bottom:12px}
+.f label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.f input,.f select,.f textarea{
+  width:100%;padding:11px 13px;border-radius:var(--rs);
+  border:1.5px solid var(--border);background:var(--surface2);
+  color:var(--text);font-size:15px;font-family:inherit;
+}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--primary);background:var(--surface)}
+.f textarea{resize:vertical;min-height:72px}
+.f select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 13px center;padding-right:32px;appearance:none;
+}
+/* SLIDER */
+.sl-wrap{margin-bottom:6px}
+.sl-wrap label{display:block;font-size:9px;font-weight:600;color:var(--muted);margin-bottom:2px}
+.sl-row{display:flex;align-items:center;gap:5px}
+.sl-val{font-size:12px;font-weight:700;min-width:16px;text-align:center}
+input[type=range]{
+  flex:1;height:3px;border-radius:2px;appearance:none;-webkit-appearance:none;
+  background:var(--border);outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--primary);border:2px solid var(--surface);
+  box-shadow:0 1px 4px rgba(37,99,235,.3);
+}
+input[type=range]::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;
+  background:var(--primary);border:2px solid var(--surface);
+}
+.sl-hints{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:1px}
+/* TOGGLE */
+.tg{display:flex;background:var(--surface2);border-radius:var(--rs);padding:3px;gap:3px;margin-bottom:12px}
+.tg-o{
+  flex:1;padding:8px 6px;border-radius:6px;border:none;
+  font-size:13px;font-weight:600;cursor:pointer;background:transparent;
+  color:var(--muted);font-family:inherit;
+}
+.tg-o.on{background:var(--primary);color:#fff}
+/* EX CARD */
+.ex{background:var(--surface2);border-radius:var(--rs);border:1.5px solid var(--border);margin-bottom:8px}
+.ex-h{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;cursor:pointer}
+.ex-n{font-size:14px;font-weight:600}
+.ex-m{font-size:11px;color:var(--muted)}
+.ex-b{padding:0 13px 13px;border-top:1px solid var(--border)}
+.grid3{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.grid2{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.mf{flex:1;min-width:48px;max-width:80px}
+.mf label{font-size:9px;color:var(--muted);font-weight:600;display:block;margin-bottom:2px;white-space:nowrap}
+.mf input,.mf select{
+  width:100%;padding:4px 5px;border-radius:var(--rs);
+  border:1.5px solid var(--border);background:var(--surface);
+  color:var(--text);font-size:13px;font-weight:600;font-family:inherit;
+  text-align:center;
+}
+.mf input:focus,.mf select:focus{outline:none;border-color:var(--primary)}
+/* TAGS */
+.tags{display:flex;flex-wrap:wrap;gap:7px}
+.tag{
+  padding:7px 13px;border-radius:20px;font-size:13px;font-weight:500;
+  border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);
+  cursor:pointer;
+}
+.tag.te{background:var(--ok-l);color:var(--ok);border-color:var(--ok)}
+.tag.tm{background:var(--primary-l);color:var(--primary);border-color:var(--primary)}
+.tag.tp{background:var(--warn-l);color:var(--warn);border-color:var(--warn)}
+.tag.ta{background:var(--bad-l);color:var(--bad);border-color:var(--bad)}
+/* SECTION TITLE */
+.st{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 8px}
+/* BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.bb{background:var(--primary-l);color:var(--primary)}
+.bg2{background:var(--ok-l);color:var(--ok)}
+.br{background:var(--bad-l);color:var(--bad)}
+.bw{background:var(--warn-l);color:var(--warn)}
+/* LIST */
+.li{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.li:last-child{border-bottom:none}
+/* STAGE */
+.stage{
+  padding:11px 13px;background:var(--surface2);border-radius:var(--rs);
+  border:1.5px solid var(--border);margin-bottom:7px;cursor:pointer;
+}
+.stage.on{border-color:var(--primary);background:var(--primary-l)}
+.stage .sl{font-size:13px;font-weight:700}
+.stage .sd{font-size:12px;color:var(--muted)}
+/* RUN WEEK */
+.wk{padding:10px 12px;background:var(--surface2);border-radius:var(--rs);border:1.5px solid var(--border);margin-bottom:7px;cursor:pointer}
+.wk.on{border-color:var(--ok);background:var(--ok-l)}
+/* MODAL */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.ov.mid{align-items:center}
+.mod{background:var(--surface);border-radius:var(--r) var(--r) 0 0;padding:20px 16px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding-bottom:calc(20px + var(--safe-b))}
+.mod.mid{border-radius:var(--r);max-height:80vh;margin:16px}
+.handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+/* STAT */
+.sg2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.sg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.sb{background:var(--surface2);border-radius:var(--rs);padding:12px;text-align:center}
+.sb .v{font-size:22px;font-weight:700;color:var(--primary)}
+.sb .l{font-size:11px;color:var(--muted);margin-top:2px}
+/* CHART */
+.cw{position:relative;height:180px;margin-top:8px}
+/* ANALYSIS */
+.anal{background:var(--primary-l);border-radius:var(--rs);padding:13px;border-left:4px solid var(--primary)}
+.anal p{font-size:13px;line-height:1.65}
+.anal ul{margin:6px 0 0 16px}
+.anal li{font-size:13px;line-height:1.7}
+/* DIVIDER */
+.div{height:1px;background:var(--border);margin:12px 0}
+/* EMPTY */
+.empty{text-align:center;padding:36px 20px;color:var(--muted)}
+.empty .ei{font-size:44px;margin-bottom:10px}
+/* NOTICE */
+.note{background:var(--surface2);border-radius:var(--rs);padding:9px 11px;font-size:12px;color:var(--muted);display:flex;gap:7px;margin-bottom:10px}
+/* ANIM */
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fi{animation:fi .18s ease-out}
+/* CHEVRON */
+.cv{font-size:11px;color:var(--muted);transition:transform .18s;display:inline-block}
+.cv.op{transform:rotate(180deg)}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <h1>🦵 Guidopractor</h1>
+  <button class="hbtn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+</div>
+
+<main id="main"></main>
+
+<nav id="nav">
+  <button class="ni on" id="n-home" onclick="go('home')"><span class="ico">🏠</span>Home</button>
+  <button class="ni" id="n-log"  onclick="go('log')"><span class="ico">💪</span>Log</button>
+  <button class="ni" id="n-ci"   onclick="go('ci')"><span class="ico">📋</span>Check-in</button>
+  <button class="ni" id="n-prog" onclick="go('prog')"><span class="ico">📈</span>Progress</button>
+  <button class="ni" id="n-more" onclick="go('more')"><span class="ico">⋯</span>More</button>
+</nav>
+
+<div id="mc"></div><!-- modal container -->
+
+<script>
+'use strict';
+
+// ── CONSTANTS ───────────────────────────────────────────────
+const EX_LIB = [
+  {n:'Staand SLR',                           t:'reps'},
+  {n:'Clam Shell',                            t:'reps'},
+  {n:'Side Raise',                            t:'reps'},
+  {n:'Hamstring Roll op Bal',                t:'reps'},
+  {n:'Copenhagen Hold',                      t:'hold'},
+  {n:'Hiplock op Box',                       t:'reps', w:true},
+  {n:'Leg Extension Hold',                   t:'hold'},
+  {n:'Wall Sit Hold',                        t:'dur'},
+  {n:'SLR 5kg',                              t:'dur'},
+  {n:'Hip Bridge 1 Been (5 sec)',            t:'hold'},
+  {n:'Hip Thruster',                         t:'reps', w:true},
+  {n:'Deadlift',                             t:'reps', w:true},
+  {n:'Bulgarian Lunge',                      t:'reps', w:true},
+  {n:'Single Leg Press',                     t:'reps', w:true},
+  {n:'Squat',                                t:'reps', w:true},
+  {n:'Hiplock met Elastiek',                 t:'reps'},
+  {n:'Calf Raises 1 Been',                   t:'reps'},
+  {n:'Step Up Box',                          t:'reps'},
+  {n:'Trippeling Hiplock (side/voorwaarts)', t:'reps'},
+  {n:'Lunge op Teen + Waterbag',             t:'reps', w:true},
+  {n:'Lunge Voorwaarts Stappen Waterbag',    t:'reps', w:true},
+  {n:'Lunge Uitvalspas Zijwaarts',           t:'reps'},
+  {n:'Zijwaarts op Tenen over Step',         t:'reps'},
+  {n:'Van Step Afspringen 1 Been',           t:'reps'},
+  {n:'2 Benen van Step Afspringen',          t:'reps'},
+  {n:'Box Jump Counter',                     t:'reps'},
+  {n:'Lateral Bounds',                       t:'reps'},
+  {n:'Single Leg Hops',                      t:'reps'},
+  // legacy
+  {n:'Hamstring Curls',    t:'reps'},
+  {n:'Stationary Cycling', t:'dur'},
+  {n:'Hold Leg Extension', t:'hold'},
+  {n:'Hold Wall Sit',      t:'hold'},
+  {n:'Spanish Squat Hold', t:'hold'},
+  {n:'Step-Ups',           t:'reps', w:true},
+  {n:'Leg Press',          t:'reps', w:true},
+  {n:'Hip Bridge Single Leg', t:'reps'},
+  {n:'Calf Raises',        t:'reps', w:true},
+  {n:'Glute Band Exorotation', t:'reps'},
+  {n:'Box Jumps',          t:'reps'},
+  {n:'Jump Rope',          t:'dur'},
+  {n:'Terminal Knee Extension', t:'reps'},
+];
+
+// Schedules defined as sections — each section has a label + exercise list
+const SCHEDS = {
+  str: {
+    key:'str', label:'💪 Schema 1 — Kracht',
+    sections:[
+      {
+        label:'🔥 Activatie',
+        exercises:['Staand SLR','Clam Shell','Side Raise','Hamstring Roll op Bal',
+          'Copenhagen Hold','Hiplock op Box','Leg Extension Hold','Wall Sit Hold']
+      },
+      {
+        label:'💪 Kracht',
+        exercises:['SLR 5kg','Hip Bridge 1 Been (5 sec)','Hip Thruster','Deadlift',
+          'Bulgarian Lunge','Single Leg Press','Squat']
+      }
+    ]
+  },
+  ftw: {
+    key:'ftw', label:'🎾 Schema 2 — Footwork & Tennis',
+    sections:[
+      {
+        label:'🔥 Activatie',
+        exercises:['Hiplock met Elastiek','Calf Raises 1 Been','Step Up Box',
+          'Leg Extension Hold','Wall Sit Hold']
+      },
+      {
+        label:'🎾 Footwork',
+        exercises:['Trippeling Hiplock (side/voorwaarts)','Lunge op Teen + Waterbag',
+          'Lunge Voorwaarts Stappen Waterbag','Lunge Uitvalspas Zijwaarts',
+          'Zijwaarts op Tenen over Step','Van Step Afspringen 1 Been',
+          '2 Benen van Step Afspringen','Box Jump Counter','12-min Sprongprogramma','Running Scheme']
+      }
+    ]
+  },
+  other: {
+    key:'other', label:'🏃 Andere training',
+    sections:[]
+  },
+  // backward compat for old saved sessions
+  s1: {key:'s1', label:'💪 Schema 1 — Kracht', sections:[
+    {label:'Kracht', exercises:['SLR 5kg','Hip Bridge 1 Been (5 sec)','Hip Thruster','Deadlift','Bulgarian Lunge','Single Leg Press','Squat']}
+  ]},
+  s2: {key:'s2', label:'🎾 Footwork', sections:[
+    {label:'Footwork', exercises:['Trippeling Hiplock (side/voorwaarts)','Lunge op Teen + Waterbag','Lunge Voorwaarts Stappen Waterbag','Lunge Uitvalspas Zijwaarts','Zijwaarts op Tenen over Step','Van Step Afspringen 1 Been','2 Benen van Step Afspringen','Box Jump Counter','12-min Sprongprogramma','Running Scheme']}
+  ]},
+};
+
+// Flat list helper (for "add exercise" picker — all known names)
+const ALL_SCHED_NAMES = Object.values(SCHEDS)
+  .flatMap(s=>s.sections.flatMap(sec=>sec.exercises))
+  .filter((v,i,a)=>a.indexOf(v)===i);
+
+// 12-min Sprongprogramma (progressive jump stages)
+const SPRING_STAGES = [
+  {id:'p1', label:'Stage 1', desc:'6 × 1 min',  sets:6, min:1,  total:6},
+  {id:'p2', label:'Stage 2', desc:'6 × 2 min',  sets:6, min:2,  total:12},
+  {id:'p3', label:'Stage 3', desc:'4 × 3 min',  sets:4, min:3,  total:12},
+  {id:'p4', label:'Stage 4', desc:'3 × 4 min',  sets:3, min:4,  total:12},
+  {id:'p5', label:'Stage 5', desc:'2 × 6 min',  sets:2, min:6,  total:12},
+];
+
+// Legacy jump stages (kept for old sessions)
+const JUMP_STAGES = [
+  {id:'s1', label:'Stage 1', desc:'3 × 4 min jumping', sets:3, min:4},
+  {id:'s2', label:'Stage 2', desc:'4 × 3 min jumping', sets:4, min:3},
+  {id:'s3', label:'Stage 3', desc:'6 × 2 min jumping', sets:6, min:2},
+];
+
+const RUN_WEEKS = [
+  {w:1, desc:'1 min run / 2 min walk × 6', total:18},
+  {w:2, desc:'2 min run / 1 min walk × 6', total:18},
+  {w:3, desc:'3 min run / 1 min walk × 5', total:20},
+  {w:4, desc:'5 min run / 1 min walk × 4', total:24},
+  {w:5, desc:'10 min run / 1 min walk × 2', total:22},
+  {w:6, desc:'20 min continuous run',       total:20},
+  {w:7, desc:'30 min continuous run',       total:30},
+];
+
+const FUNC_TASKS = [
+  {id:'stairs',   lbl:'Walking down stairs'},
+  {id:'cycling',  lbl:'Cycling'},
+  {id:'squat',    lbl:'Squatting to pick up'},
+  {id:'standing', lbl:'Walking'},
+  {id:'chair',    lbl:'Getting up from chair'},
+];
+
+const EXTRA_ACT = ['Tennis','Running','Walking','Swimming','Cycling','Gym (other)','Other'];
+const TAG_OPT   = ['easy','manageable','painful','avoided'];
+const TAG_CLS   = {easy:'te',manageable:'tm',painful:'tp',avoided:'ta'};
+
+// ── STORAGE ─────────────────────────────────────────────────
+const LS = {
+  get(k,def=[]){ try{return JSON.parse(localStorage.getItem(k))??def}catch{return def} },
+  set(k,v){ localStorage.setItem(k,JSON.stringify(v)) },
+};
+
+function getSessions(){ return LS.get('sessions',[]) }
+function getCheckins(){ return LS.get('checkins',[]) }
+function getCustomEx(){ return LS.get('customEx',[]) }
+
+function saveSession(s){
+  const all = getSessions();
+  if(s.id){ const i=all.findIndex(x=>x.id===s.id); if(i>=0){all[i]=s}else{all.push(s)} }
+  else{ s.id=Date.now(); all.push(s); }
+  LS.set('sessions',all); return s.id;
+}
+
+function saveCheckin(c){
+  const all = getCheckins();
+  const i = all.findIndex(x=>x.date===c.date);
+  if(i>=0){all[i]={...all[i],...c}}else{all.push(c)};
+  LS.set('checkins',all);
+}
+
+// ── UTILS ────────────────────────────────────────────────────
+const td  = ()=>new Date().toISOString().slice(0,10);
+const ago = n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10) };
+const fd  = d=>new Date(d+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+const fds = d=>new Date(d+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+const avg = a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
+const el  = id=>document.getElementById(id);
+const uid = ()=>Date.now()+Math.random();
+
+function toast(msg,type='info'){
+  const t=document.createElement('div');
+  t.style.cssText=`position:fixed;bottom:calc(var(--nav) + 10px + var(--safe-b));left:50%;transform:translateX(-50%);
+    background:${type==='err'?'#dc2626':type==='ok'?'#059669':'#1e293b'};color:#fff;
+    padding:9px 16px;border-radius:20px;font-size:14px;font-weight:500;z-index:999;
+    white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3);animation:fi .2s ease`;
+  t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2400);
+}
+
+// ── STATE ────────────────────────────────────────────────────
+let screen='home', dark=localStorage.getItem('theme')==='dark';
+let sess=null, ci=null, charts={};
+
+// ── THEME ────────────────────────────────────────────────────
+function applyTheme(){
+  document.documentElement.dataset.theme=dark?'dark':'light';
+  el('themeBtn').textContent=dark?'☀️':'🌙';
+}
+function toggleTheme(){ dark=!dark; localStorage.setItem('theme',dark?'dark':'light'); applyTheme(); }
+
+// ── NAV ──────────────────────────────────────────────────────
+function go(s){
+  screen=s;
+  Object.values(charts).forEach(c=>{try{c.destroy()}catch{}});
+  charts={};
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  el('n-'+s)?.classList.add('on');
+  render();
+}
+
+function render(){
+  el('main').innerHTML=`<div class="fi" id="scr"></div>`;
+  ({home:rHome,log:rLog,ci:rCI,prog:rProg,more:rMore}[screen]||rHome)();
+}
+
+// ── DISCLAIMER ───────────────────────────────────────────────
+function checkDisclaimer(){
+  if(!localStorage.getItem('disc')) showDisclaimer();
+}
+function showDisclaimer(){
+  el('mc').innerHTML=`<div class="ov mid" id="discOv">
+    <div class="mod mid" style="text-align:left">
+      <div style="font-size:40px;text-align:center;margin-bottom:12px">⚕️</div>
+      <h2 style="font-size:17px;margin-bottom:10px;text-align:center">Before you start</h2>
+      <p style="font-size:14px;line-height:1.7;color:var(--muted)">
+        <strong style="color:var(--text)">This app is for personal tracking only — not medical advice.</strong>
+        Always follow your physiotherapist's protocol. If you experience increased pain, swelling, or new symptoms, stop and consult your physio.
+      </p>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;margin-bottom:18px">
+        Your data is stored only on this device. Nothing leaves your phone.
+      </p>
+      <button class="btn bp" onclick="localStorage.setItem('disc','1');closeM()">I understand — Let's go</button>
+    </div>
+  </div>`;
+}
+
+// ── HOME ─────────────────────────────────────────────────────
+function rHome(){
+  const sessions=getSessions(), checkins=getCheckins();
+  const todaySess=sessions.filter(s=>s.date===td());
+  const todayCI=checkins.find(c=>c.date===td());
+  const s7=sessions.filter(s=>s.date>=ago(7));
+  const c7=checkins.filter(c=>c.date>=ago(7));
+
+  const allPain=[]; s7.forEach(s=>s.exercises?.forEach(e=>{if(e.pain>0)allPain.push(e.pain)}));
+  const ap=avg(allPain), as=avg(c7.map(c=>c.swelling).filter(v=>v!=null));
+  const wStr=s7.filter(s=>s.sched==='str'||s.sched==='s1').length;
+  const wFtw=s7.filter(s=>s.sched==='ftw'||s.sched==='s2').length;
+  const wOth=s7.filter(s=>s.sched==='other').length;
+
+  const streak=calcStreak(sessions,checkins);
+  const lastSess=sessions.length?sessions[sessions.length-1]:null;
+
+  const analysis=generateAnalysis(sessions,checkins);
+
+  el('scr').innerHTML=`
+  <div class="note">🔒 <span>All data stored only on this device.</span></div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:12px;color:var(--muted)">${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}</div>
+        <div style="font-size:18px;font-weight:700;margin-top:2px">Good ${greet()}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:26px;font-weight:700;color:var(--primary)">${streak}</div>
+        <div style="font-size:11px;color:var(--muted)">day streak</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sg3">
+    <div class="sb"><div class="v">${ap!=null?ap.toFixed(1):'—'}</div><div class="l">Avg Pain<br>(7d)</div></div>
+    <div class="sb"><div class="v">${as!=null?as.toFixed(1):'—'}</div><div class="l">Swelling<br>(7d)</div></div>
+    <div class="sb"><div class="v">${s7.length}</div><div class="l">Sessions<br>(7d)</div></div>
+  </div>
+
+  <div class="st">Deze week getraind</div>
+  <div class="sg3">
+    <div class="sb" style="cursor:pointer" onclick="go('log')">
+      <div class="v">${wStr}</div>
+      <div class="l">💪 Schema 1<br>Kracht</div>
+    </div>
+    <div class="sb" style="cursor:pointer" onclick="go('log')">
+      <div class="v">${wFtw}</div>
+      <div class="l">🎾 Schema 2<br>Footwork</div>
+    </div>
+    <div class="sb" style="cursor:pointer" onclick="go('log')">
+      <div class="v">${wOth}</div>
+      <div class="l">🏃 Andere<br>Training</div>
+    </div>
+  </div>
+
+  <div class="st">Today</div>
+  <div class="card" style="padding:10px">
+    <div class="li" style="cursor:pointer" onclick="go('ci')">
+      <span style="font-size:14px;font-weight:500">📋 Daily Check-in</span>
+      ${todayCI?`<span class="badge bg2">Done</span>`:`<span class="badge br">Pending</span>`}
+    </div>
+    <div class="li" style="cursor:pointer;border:none" onclick="go('log')">
+      <span style="font-size:14px;font-weight:500">💪 Log Session</span>
+      ${todaySess.length?`<span class="badge bg2">${todaySess.length} logged</span>`:`<span class="badge bb">Ready</span>`}
+    </div>
+  </div>
+
+  ${lastSess?`<button class="btn bo bsm" style="margin-bottom:10px" onclick="repeatLast()">↩ Repeat Last Session (${fds(lastSess.date)})</button>`:''}
+
+  ${todayCI?`<div class="st">Today's Check-in</div>
+  <div class="card">
+    <div class="sg3">
+      <div class="sb"><div class="v">${todayCI.stiffness??'—'}</div><div class="l">Stiffness</div></div>
+      <div class="sb"><div class="v">${todayCI.swelling??'—'}</div><div class="l">Swelling</div></div>
+      <div class="sb"><div class="v">${todayCI.restingPain??'—'}</div><div class="l">Gem. Pijn</div></div>
+    </div>
+  </div>`:''}
+
+  ${analysis?`<div class="st">Weekly Analysis</div>
+  <div class="card"><div class="anal">
+    <p>${analysis.summary}</p>
+    ${analysis.recs.length?`<ul>${analysis.recs.map(r=>`<li>${r}</li>`).join('')}</ul>`:''}</div></div>`:''}`;
+}
+
+function greet(){ const h=new Date().getHours(); return h<12?'morning':h<17?'afternoon':'evening' }
+
+function calcStreak(sessions,checkins){
+  let s=0,d=new Date();
+  for(let i=0;i<90;i++){
+    const ds=d.toISOString().slice(0,10);
+    if(sessions.some(x=>x.date===ds)||checkins.some(x=>x.date===ds)) s++;
+    else if(i>0) break;
+    d.setDate(d.getDate()-1);
+  }
+  return s;
+}
+
+// ── WEEKLY ANALYSIS ──────────────────────────────────────────
+function generateAnalysis(sessions,checkins){
+  const n7=sessions.filter(s=>s.date>=ago(7)), p7=sessions.filter(s=>s.date>=ago(14)&&s.date<ago(7));
+  if(n7.length<2) return null;
+
+  const pN=[],pP=[];
+  n7.forEach(s=>s.exercises?.forEach(e=>{if(e.pain>0)pN.push(e.pain)}));
+  p7.forEach(s=>s.exercises?.forEach(e=>{if(e.pain>0)pP.push(e.pain)}));
+
+  const c7=checkins.filter(c=>c.date>=ago(7));
+  const swl=avg(c7.map(c=>c.swelling).filter(v=>v!=null));
+  const stf=avg(c7.map(c=>c.stiffness).filter(v=>v!=null));
+  const apN=avg(pN), apP=avg(pP);
+
+  let summary=`This week: <strong>${n7.length} session${n7.length!==1?'s':''}</strong>.`;
+  const recs=[];
+
+  if(apN!=null){
+    if(apP!=null){
+      const d=apN-apP;
+      if(d<-0.5) summary+=` Pain improving (${apN.toFixed(1)} ↓ from ${apP.toFixed(1)}).`;
+      else if(d>0.5) summary+=` Pain increased (${apN.toFixed(1)} ↑ from ${apP.toFixed(1)}).`;
+      else summary+=` Pain stable at ${apN.toFixed(1)}/10.`;
+    } else summary+=` Avg exercise pain: ${apN.toFixed(1)}/10.`;
+  }
+  if(swl!=null) summary+=swl<=2?' Swelling well controlled.':swl<=5?` Moderate swelling (${swl.toFixed(1)}/10).`:` High swelling (${swl.toFixed(1)}/10) — consider ice + rest.`;
+
+  if(apN!=null&&apN>6) recs.push('Pain elevated — reduce load ~20% next week and check with your physio.');
+  else if(apN!=null&&apN<3&&n7.length>=3) recs.push('Pain low and consistent — consider small load progression next week.');
+  if(n7.length<3) recs.push('Aim for 3+ sessions/week for steady progress.');
+  if(swl!=null&&swl>5) recs.push('Elevated swelling: ice 15 min after sessions, elevate leg in evenings.');
+  if(stf!=null&&stf>6) recs.push('High morning stiffness: try gentle heel slides before getting up.');
+
+  return {summary,recs};
+}
+
+// ── LOG SESSION ──────────────────────────────────────────────
+function rLog(){
+  if(!sess) sess={date:td(),sched:'str',exercises:[],extra:'',notes:''};
+  renderLogUI();
+}
+
+function renderLogUI(){
+  const scr=el('scr'); if(!scr) return;
+  scr.innerHTML=`
+  <div class="f"><label>Session Date</label>
+    <input type="date" value="${sess.date}" onchange="sess.date=this.value">
+  </div>
+  <div class="f"><label>Schema</label>
+    <select onchange="switchSched(this.value)" style="font-size:15px;font-weight:600">
+      ${['str','ftw','other'].map(k=>{const s=SCHEDS[k]; const active=sess.sched===k||(sess.sched==='s1'&&k==='str')||(sess.sched==='s2'&&k==='ftw');
+        return `<option value="${k}" ${active?'selected':''}>${s.label}</option>`;
+      }).join('')}
+    </select>
+  </div>
+  ${sess.sched==='other' ? `
+  <div class="st">Activiteit</div>
+  <div class="card">
+    <div class="f" style="margin-bottom:10px"><label>Soort activiteit</label>
+      <select onchange="sess.extra=this.value" style="font-size:15px;font-weight:600">
+        <option value="">— Kies activiteit —</option>
+        ${EXTRA_ACT.map(a=>`<option value="${a}" ${sess.extra===a?'selected':''}>${a}</option>`).join('')}
+      </select>
+    </div>
+    <div class="f" style="margin-bottom:0"><label>Duur (min)</label>
+      <input type="number" placeholder="bijv. 60" value="${sess.otherDur||''}" oninput="sess.otherDur=this.value" style="max-width:120px">
+    </div>
+  </div>
+  <div class="f"><label>Notities</label>
+    <textarea placeholder="Hoe voelde het, pijnklachten, bijzonderheden..." oninput="sess.notes=this.value" style="min-height:100px">${sess.notes}</textarea>
+  </div>
+  ` : `
+  <div class="st">Exercises</div>
+  <div id="exList"></div>
+  <button class="btn bg bsm" style="margin-bottom:10px" onclick="showAddEx()">+ Add Exercise</button>
+  <div class="div"></div>
+  <div class="f"><label>Extra Activity (optional)</label>
+    <select onchange="sess.extra=this.value">
+      <option value="">— None —</option>
+      ${EXTRA_ACT.map(a=>`<option value="${a}" ${sess.extra===a?'selected':''}>${a}</option>`).join('')}
+    </select>
+  </div>
+  <div class="f"><label>Session Notes</label>
+    <textarea placeholder="Overall feel, anything notable..." oninput="sess.notes=this.value">${sess.notes}</textarea>
+  </div>
+  `}
+  <div class="row">
+    <button class="btn bg bsm" onclick="clearSess()">Clear</button>
+    <button class="btn bs" onclick="saveSess()">Save Session ✓</button>
+  </div>
+  <div style="height:12px"></div>`;
+
+  buildExList();
+}
+
+function buildExList(){
+  const listEl=el('exList'); if(!listEl||sess.sched==='other') return;
+  const sched=SCHEDS[sess.sched]||SCHEDS.str;
+
+  // Ensure all schedule exercises exist in session (preserving order)
+  sched.sections.forEach(sec=>{
+    sec.exercises.forEach(n=>{ if(!sess.exercises.find(e=>e.n===n)) sess.exercises.push(newEx(n)); });
+  });
+
+  // Build HTML with section headers
+  let html='';
+  sched.sections.forEach(sec=>{
+    html+=`<div class="st" style="margin-top:16px;margin-bottom:6px">${sec.label}</div>`;
+    sec.exercises.forEach(name=>{
+      const i=sess.exercises.findIndex(e=>e.n===name);
+      if(i>=0) html+=exCard(sess.exercises[i],i);
+    });
+  });
+  // Any user-added exercises not in a section
+  const schedNames=sched.sections.flatMap(s=>s.exercises);
+  sess.exercises.forEach((ex,i)=>{
+    if(!schedNames.includes(ex.n)) html+=exCard(ex,i);
+  });
+
+  listEl.innerHTML=html;
+  sess.exercises.forEach((_,i)=>{
+    sl(`p_${i}`,v=>{ sess.exercises[i].pain=+v; el(`pv_${i}`).textContent=v; colorPain(i,+v); });
+    sl(`e_${i}`,v=>{ sess.exercises[i].rpe=+v; el(`ev_${i}`).textContent=v; });
+  });
+}
+
+function sl(id,cb){ const e=el(id); if(e) e.addEventListener('input',ev=>cb(ev.target.value)); }
+
+function colorPain(i,v){
+  const e=el(`pv_${i}`); if(!e) return;
+  e.style.color=v<=3?'var(--ok)':v<=6?'var(--warn)':'var(--bad)';
+}
+
+function prevExData(name){
+  // Find the most recent saved session (excluding current) that has this exercise
+  const all=getSessions();
+  for(let i=all.length-1;i>=0;i--){
+    if(all[i].id===sess.id) continue;
+    const ex=all[i].exercises?.find(e=>e.n===name);
+    if(ex) return {...ex, _date: all[i].date};
+  }
+  return null;
+}
+
+function newEx(name){
+  const prev=prevExData(name);
+  return {
+    n:name,
+    sets:  prev?.sets  ?? '',
+    reps:  prev?.reps  ?? '',
+    weight:prev?.weight ?? '',
+    hold:  prev?.hold  ?? '',
+    dur:   prev?.dur   ?? '',
+    pain:  0,
+    rpe:   prev?.rpe   ?? 5,
+    rom:   prev?.rom   ?? '',
+    notes: '',
+    jstage:prev?.jstage ?? 's1',
+    sstage:prev?.sstage ?? 'p1',
+    rweek: prev?.rweek  ?? 1,
+  };
+}
+
+function exInfo(n){ return [...EX_LIB,...getCustomEx().map(x=>({n:x,t:'reps',w:true}))].find(e=>e.n===n)||{t:'reps',w:true} }
+
+function exCard(ex,i){
+  const info=exInfo(ex.n);
+  const isJump=ex.n==='Jumping Protocol', isRun=ex.n==='Running Scheme';
+  const isSpring=ex.n==='12-min Sprongprogramma';
+  const prev=prevExData(ex.n);
+  const prevHint=v=>prev&&v!==''?`<span style="font-size:10px;color:var(--muted)"> (prev: ${v})</span>`:'';
+
+  let fields='';
+  if(isSpring){
+    fields=`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Selecteer fase:</div>`+
+    SPRING_STAGES.map(s=>`<div class="stage ${(ex.sstage||'p1')===s.id?'on':''}" onclick="setSS(${i},'${s.id}')">
+      <div class="sl">${s.label} — ${s.desc} ${(ex.sstage||'p1')===s.id?'✓':''}</div>
+      <div class="sd">${s.total} min totaal</div></div>`).join('');
+  } else if(isJump){
+    fields=JUMP_STAGES.map(s=>`<div class="stage ${ex.jstage===s.id?'on':''}" onclick="setJS(${i},'${s.id}')">
+      <div class="sl">${s.label} ${ex.jstage===s.id?'✓':''}</div><div class="sd">${s.desc}</div></div>`).join('');
+  } else if(isRun){
+    fields=RUN_WEEKS.map(w=>`<div class="wk ${ex.rweek===w.w?'on':''}" onclick="setRW(${i},${w.w})">
+      <div style="font-size:11px;font-weight:700;color:var(--muted)">Week ${w.w}</div>
+      <div style="font-size:13px;font-weight:600">${w.desc}</div>
+      <div style="font-size:11px;color:var(--muted)">${w.total} min total</div></div>`).join('');
+  } else if(info.t==='hold'){
+    fields=`<div class="grid3">
+      <div class="mf"><label>Sets${prev?.sets?prevHint(prev.sets):''}</label><input type="number" value="${ex.sets}" placeholder="${prev?.sets||''}" oninput="sess.exercises[${i}].sets=this.value"></div>
+      <div class="mf"><label>Hold (sec)${prev?.hold?prevHint(prev.hold):''}</label><input type="number" value="${ex.hold}" placeholder="${prev?.hold||''}" oninput="sess.exercises[${i}].hold=this.value"></div>
+      <div class="mf"><label>ROM (°)${prev?.rom?prevHint(prev.rom):''}</label><input type="number" value="${ex.rom||''}" min="0" max="180" placeholder="${prev?.rom||'—'}" oninput="sess.exercises[${i}].rom=this.value"></div>
+    </div>`;
+  } else if(info.t==='dur'){
+    const isWallSit = ex.n==='Wall Sit Hold';
+    fields=`<div class="grid2">
+      <div class="mf"><label>Duur (min)${prev?.dur?prevHint(prev.dur):''}</label><input type="number" value="${ex.dur}" placeholder="${prev?.dur||''}" oninput="sess.exercises[${i}].dur=this.value"></div>
+      ${isWallSit
+        ? `<div class="mf"><label>ROM (°)${prev?.rom?prevHint(prev.rom):''}</label><input type="number" value="${ex.rom||''}" min="0" max="180" placeholder="${prev?.rom||'—'}" oninput="sess.exercises[${i}].rom=this.value"></div>`
+        : `<div class="mf"><label>Level/Weerstand${prev?.weight?prevHint(prev.weight):''}</label><input type="number" value="${ex.weight}" placeholder="${prev?.weight||''}" oninput="sess.exercises[${i}].weight=this.value"></div>`
+      }
+    </div>`;
+  } else {
+    fields=`<div class="${info.w?'grid3':'grid3'}">
+      <div class="mf"><label>Sets${prev?.sets?prevHint(prev.sets):''}</label><input type="number" value="${ex.sets}" placeholder="${prev?.sets||''}" oninput="sess.exercises[${i}].sets=this.value"></div>
+      <div class="mf"><label>Reps${prev?.reps?prevHint(prev.reps):''}</label><input type="number" value="${ex.reps}" placeholder="${prev?.reps||''}" oninput="sess.exercises[${i}].reps=this.value"></div>
+      ${info.w?`<div class="mf"><label>Gewicht (kg)${prev?.weight?prevHint(prev.weight):''}</label><input type="number" value="${ex.weight}" step="0.5" placeholder="${prev?.weight||''}" oninput="sess.exercises[${i}].weight=this.value"></div>`:`<div class="mf"><label>ROM (°)${prev?.rom?prevHint(prev.rom):''}</label><input type="number" value="${ex.rom||''}" min="0" max="180" placeholder="${prev?.rom||'—'}" oninput="sess.exercises[${i}].rom=this.value"></div>`}
+    </div>
+    ${info.w?`<div class="grid2" style="margin-top:4px">
+      <div class="mf"><label>ROM (°)${prev?.rom?prevHint(prev.rom):''}</label><input type="number" value="${ex.rom||''}" min="0" max="180" placeholder="${prev?.rom||'—'}" oninput="sess.exercises[${i}].rom=this.value"></div>
+      <div class="mf" style="max-width:none;flex:3"><label>Notitie</label><input type="text" value="${ex.notes||''}" placeholder="Notitie" oninput="sess.exercises[${i}].notes=this.value" style="text-align:left"></div>
+    </div>`:''}`;
+  }
+
+  if(!isJump&&!isRun){
+    const painCol=ex.pain<=3?'var(--ok)':ex.pain<=6?'var(--warn)':'var(--bad)';
+    fields+=`
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <div style="flex:1">
+        <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:3px">Pijn (0–10)</div>
+        <div class="sl-row"><span class="sl-val" id="pv_${i}" style="color:${painCol}">${ex.pain}</span>
+          <input type="range" id="p_${i}" min="0" max="10" value="${ex.pain}"></div>
+        <div class="sl-hints"><span>Geen</span><span>Max</span></div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:3px">RPE${prev?.rpe!=null?` <span style="font-size:9px;color:var(--muted)">(v: ${prev.rpe})</span>`:''}</div>
+        <div class="sl-row"><span class="sl-val" id="ev_${i}">${ex.rpe??5}</span>
+          <input type="range" id="e_${i}" min="0" max="10" value="${ex.rpe??5}"></div>
+        <div class="sl-hints"><span>Rust</span><span>Max</span></div>
+      </div>
+    </div>
+    <div style="margin-top:5px">
+      <div class="mf" style="max-width:none"><label>Notitie</label><input type="text" value="${ex.notes||''}" placeholder="Notitie" oninput="sess.exercises[${i}].notes=this.value" style="text-align:left"></div>
+    </div>`;
+  }
+
+  return `<div class="ex" id="ec_${i}" style="background:var(--surface2);border-radius:var(--rs);border:1.5px solid var(--border);margin-bottom:6px;padding:8px 10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div class="ex-n">${ex.n}${prev?`<span style="font-size:10px;color:var(--ok);font-weight:500;margin-left:6px">↩ ${fds(prev._date)}</span>`:'<span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:6px">nieuw</span>'}</div>
+      <button class="btn bd bsm" style="width:auto;padding:4px 10px;font-size:12px" onclick="rmEx(${i})">✕</button>
+    </div>
+    ${fields}
+  </div>`;
+}
+
+function setJS(i,id){ sess.exercises[i].jstage=id; buildExList(); }
+function setSS(i,id){ sess.exercises[i].sstage=id; buildExList(); }
+function setRW(i,w){ sess.exercises[i].rweek=w; buildExList(); }
+function rmEx(i){ sess.exercises.splice(i,1); buildExList(); }
+
+function switchSched(s){ sess.sched=s; sess.exercises=[]; renderLogUI(); }
+
+function showAddEx(){
+  const all=[...EX_LIB,...getCustomEx().map(n=>({n,t:'reps',w:true}))];
+  const existing=sess.exercises.map(e=>e.n);
+  const avail=all.filter(e=>!existing.includes(e.n));
+  el('mc').innerHTML=`<div class="ov" onclick="if(event.target===this)closeM()">
+    <div class="mod">
+      <div class="handle"></div>
+      <h2 style="font-size:16px;margin-bottom:12px">Add Exercise</h2>
+      <div class="f"><label>Exercise</label>
+        <select id="addSel" onchange="el('cef').style.display=this.value==='__c__'?'block':'none'">
+          ${avail.map(e=>`<option value="${e.n}">${e.n}</option>`).join('')}
+          <option value="__c__">+ Custom exercise...</option>
+        </select>
+      </div>
+      <div id="cef" class="f" style="display:none"><label>Custom Name</label>
+        <input type="text" id="cen" placeholder="Exercise name">
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn bg" onclick="closeM()">Cancel</button>
+        <button class="btn bp" onclick="doAddEx()">Add</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function doAddEx(){
+  let name=el('addSel').value;
+  if(name==='__c__'){
+    name=el('cen')?.value.trim();
+    if(!name){toast('Enter a name','err');return}
+    const cx=getCustomEx(); if(!cx.includes(name)){cx.push(name);LS.set('customEx',cx)}
+  }
+  sess.exercises.push(newEx(name));
+  closeM(); buildExList();
+}
+
+function saveSess(){
+  if(sess.sched==='other'){
+    if(!sess.extra){toast('Kies een activiteit','err');return}
+  } else {
+    if(!sess.exercises.length){toast('Add at least one exercise','err');return}
+  }
+  saveSession(sess);
+  toast('Session saved!','ok');
+  sess=null; go('home');
+}
+
+function clearSess(){ if(confirm('Clear session?')){sess=null;rLog()} }
+
+function repeatLast(){
+  const sessions=getSessions();
+  const last=sessions.length?sessions[sessions.length-1]:null;
+  if(!last) return;
+  sess={date:td(),sched:last.sched,exercises:last.exercises.map(e=>({...e,pain:0,rpe:5,notes:''})),extra:'',notes:''};
+  go('log');
+}
+
+// ── KNEE DIAGRAM ─────────────────────────────────────────────
+// SVG paths for each knee view (100×160 viewBox)
+const KNEE_VIEWS = {
+  frontal: {
+    label:'Voorzijde',
+    path:`
+      <ellipse cx="50" cy="30" rx="22" ry="28" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
+      <ellipse cx="50" cy="100" rx="26" ry="32" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
+      <ellipse cx="50" cy="98" rx="14" ry="12" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="3,2" opacity=".5"/>
+      <line x1="28" y1="62" x2="28" y2="72" stroke="var(--border)" stroke-width="2"/>
+      <line x1="72" y1="62" x2="72" y2="72" stroke="var(--border)" stroke-width="2"/>
+      <ellipse cx="50" cy="67" rx="22" ry="8" fill="var(--primary-l)" stroke="var(--primary)" stroke-width="1.5" opacity=".6"/>
+      <text x="50" y="160" text-anchor="middle" font-size="9" fill="var(--muted)">Voorzijde</text>`
+  },
+  medial: {
+    label:'Binnenkant',
+    path:`
+      <path d="M50,8 C35,8 28,18 28,30 L28,58 C28,62 32,66 36,67 L36,75 C32,76 28,80 28,85 L28,118 C28,130 35,148 50,150 C65,148 72,130 72,118 L72,85 C72,80 68,76 64,75 L64,67 C68,66 72,62 72,58 L72,30 C72,18 65,8 50,8 Z" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
+      <ellipse cx="36" cy="71" rx="6" ry="5" fill="var(--primary-l)" stroke="var(--primary)" stroke-width="1.5" opacity=".7"/>
+      <path d="M36,67 Q30,71 36,75" fill="none" stroke="var(--primary)" stroke-width="1" opacity=".5"/>
+      <text x="50" y="160" text-anchor="middle" font-size="9" fill="var(--muted)">Binnenkant</text>`
+  },
+  lateral: {
+    label:'Buitenkant',
+    path:`
+      <path d="M50,8 C35,8 28,18 28,30 L28,58 C28,62 32,66 36,67 L36,75 C32,76 28,80 28,85 L28,118 C28,130 35,148 50,150 C65,148 72,130 72,118 L72,85 C72,80 68,76 64,75 L64,67 C68,66 72,62 72,58 L72,30 C72,18 65,8 50,8 Z" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
+      <ellipse cx="64" cy="71" rx="6" ry="5" fill="var(--primary-l)" stroke="var(--primary)" stroke-width="1.5" opacity=".7"/>
+      <path d="M64,67 Q70,71 64,75" fill="none" stroke="var(--primary)" stroke-width="1" opacity=".5"/>
+      <text x="50" y="160" text-anchor="middle" font-size="9" fill="var(--muted)">Buitenkant</text>`
+  },
+  dorsal: {
+    label:'Achterkant',
+    path:`
+      <ellipse cx="50" cy="30" rx="20" ry="26" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
+      <ellipse cx="50" cy="105" rx="24" ry="30" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
+      <ellipse cx="50" cy="67" rx="20" ry="9" fill="var(--primary-l)" stroke="var(--primary)" stroke-width="1.5" opacity=".6"/>
+      <path d="M34,58 Q28,67 34,76" fill="none" stroke="var(--border)" stroke-width="2"/>
+      <path d="M66,58 Q72,67 66,76" fill="none" stroke="var(--border)" stroke-width="2"/>
+      <ellipse cx="50" cy="67" rx="9" ry="6" fill="none" stroke="var(--primary)" stroke-width="1" stroke-dasharray="2,2" opacity=".5"/>
+      <text x="50" y="160" text-anchor="middle" font-size="9" fill="var(--muted)">Achterkant</text>`
+  }
+};
+
+let kneeMark = 'pain'; // current marking mode
+
+function renderKneeDiagram(){
+  const markers = ci.kneeMarkers||[];
+  const views = Object.keys(KNEE_VIEWS);
+  return `
+  <div style="margin-bottom:8px">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Tik op de afbeelding om een locatie te markeren:</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button onclick="kneeMark='pain';document.querySelectorAll('.km-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on')"
+        class="km-btn btn bsm on" style="flex:1;background:${kneeMark==='pain'?'#dc2626':'var(--surface2)'};color:${kneeMark==='pain'?'#fff':'var(--text)'};border:1.5px solid #dc2626;padding:6px">
+        🔴 Pijn
+      </button>
+      <button onclick="kneeMark='stiff';document.querySelectorAll('.km-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on')"
+        class="km-btn btn bsm" style="flex:1;background:${kneeMark==='stiff'?'#2563eb':'var(--surface2)'};color:${kneeMark==='stiff'?'#fff':'var(--text)'};border:1.5px solid #2563eb;padding:6px">
+        🔵 Stijfheid
+      </button>
+      <button onclick="clearKneeMarkers()" class="btn bg bsm" style="flex:1;padding:6px;font-size:12px">✕ Wis</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${views.map(v=>`
+      <div style="text-align:center">
+        <svg viewBox="0 0 100 165" width="100%" style="max-width:130px;cursor:crosshair;display:block;margin:0 auto"
+          id="ksvg_${v}" onclick="addKneeMark(event,'${v}')">
+          ${KNEE_VIEWS[v].path}
+          ${markers.filter(m=>m.view===v).map(m=>`
+            <circle cx="${m.x}" cy="${m.y}" r="5" fill="${m.type==='pain'?'#dc2626':'#2563eb'}" opacity=".85" stroke="white" stroke-width="1"/>
+          `).join('')}
+        </svg>
+      </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:6px;font-size:11px;color:var(--muted)">
+      <span>🔴 Pijn (${markers.filter(m=>m.type==='pain').length})</span>
+      <span>🔵 Stijfheid (${markers.filter(m=>m.type==='stiff').length})</span>
+    </div>
+  </div>`;
+}
+
+function addKneeMark(evt, view){
+  const svg = evt.currentTarget;
+  const rect = svg.getBoundingClientRect();
+  const vb = svg.viewBox.baseVal;
+  const x = +((evt.clientX - rect.left) / rect.width * vb.width).toFixed(1);
+  const y = +((evt.clientY - rect.top) / rect.height * vb.height).toFixed(1);
+  if(!ci.kneeMarkers) ci.kneeMarkers=[];
+  ci.kneeMarkers.push({view, x, y, type:kneeMark});
+  refreshKneeDiagram();
+}
+
+function clearKneeMarkers(){
+  ci.kneeMarkers=[];
+  refreshKneeDiagram();
+}
+
+function refreshKneeDiagram(){
+  const container = el('kneeDiagramContainer');
+  if(container) container.innerHTML = renderKneeDiagram();
+}
+
+// ── CHECK-IN ─────────────────────────────────────────────────
+function rCI(){
+  if(!ci){
+    const existing=getCheckins().find(c=>c.date===td());
+    ci=existing||{date:td(),stiffness:0,swelling:0,restingPain:0,functional:{},journal:'',kneeMarkers:[]};
+  }
+  el('scr').innerHTML=`
+  <div class="st">Morning Knee Check-in</div>
+  <div class="card">
+    ${mkSlider('stiffness','Morning Stiffness')}
+    ${mkSlider('swelling','Swelling')}
+    ${mkSlider('restingPain','Gemiddelde pijn overdag')}
+  </div>
+
+  <div class="st">Knie Pijn & Stijfheid — Lokalisatie</div>
+  <div class="card" id="kneeDiagramContainer">
+    ${renderKneeDiagram()}
+  </div>
+
+  <div class="st">Functional Activities</div>
+  <div class="card">${FUNC_TASKS.map(t=>mkFuncTask(t)).join('')}</div>
+  <div class="st">Daily Journal</div>
+  <div class="card">
+    <div class="f" style="margin:0"><label>Notes — anything notable today</label>
+      <textarea placeholder="How do you feel, any observations..." style="min-height:88px" oninput="ci.journal=this.value">${ci.journal||''}</textarea>
+    </div>
+  </div>
+  <button class="btn bs" style="margin-top:6px" onclick="saveCI()">Save Check-in ✓</button>
+  <div style="height:12px"></div>`;
+
+  ['stiffness','swelling','restingPain'].forEach(k=>{
+    sl(`sl_${k}`,v=>{ ci[k]=+v; el(`sv_${k}`).textContent=v;
+      el(`sv_${k}`).style.color=+v<=3?'var(--ok)':+v<=6?'var(--warn)':'var(--bad)'; });
+    const e=el(`sv_${k}`); if(e) e.style.color=ci[k]<=3?'var(--ok)':ci[k]<=6?'var(--warn)':'var(--bad)';
+  });
+}
+
+function mkSlider(key,label){
+  const v=ci[key]||0;
+  const col=v<=3?'var(--ok)':v<=6?'var(--warn)':'var(--bad)';
+  return `<div class="sl-wrap"><label>${label}</label>
+    <div class="sl-row">
+      <span class="sl-val" id="sv_${key}" style="color:${col}">${v}</span>
+      <input type="range" id="sl_${key}" min="0" max="10" value="${v}">
+    </div>
+    <div class="sl-hints"><span>0 — None</span><span>10 — Severe</span></div>
+  </div>`;
+}
+
+function mkFuncTask(task){
+  const cur=ci.functional?.[task.id]||{};
+  return `<div style="margin-bottom:13px">
+    <div style="font-size:14px;font-weight:600;margin-bottom:6px">${task.lbl}</div>
+    <div class="tags">
+      ${TAG_OPT.map(t=>`<div class="tag ${cur.rating===t?TAG_CLS[t]:''}" onclick="setFT('${task.id}','${t}')">${t[0].toUpperCase()+t.slice(1)}</div>`).join('')}
+    </div>
+    <input type="text" value="${cur.notes||''}" placeholder="Optional note..."
+      style="margin-top:7px;width:100%;padding:8px 10px;border-radius:var(--rs);border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit"
+      oninput="setFN('${task.id}',this.value)">
+  </div>`;
+}
+
+function setFT(id,r){ ci.functional=ci.functional||{}; ci.functional[id]={...(ci.functional[id]||{}),rating:r}; rCI(); }
+function setFN(id,n){ ci.functional=ci.functional||{}; ci.functional[id]={...(ci.functional[id]||{}),notes:n}; }
+function saveCI(){ saveCheckin(ci); toast('Check-in saved!','ok'); ci=null; go('home'); }
+
+// ── PROGRESS ─────────────────────────────────────────────────
+function rProg(){
+  el('scr').innerHTML=`
+  <div class="tg">
+    <button class="tg-o on" id="pt-charts" onclick="swTab('charts')">Charts</button>
+    <button class="tg-o" id="pt-log" onclick="swTab('log')">Log</button>
+    <button class="tg-o" id="pt-anal" onclick="swTab('anal')">Analysis</button>
+  </div>
+  <div id="pc"></div>`;
+  showCharts();
+}
+
+function swTab(t){
+  ['charts','log','anal'].forEach(x=>el('pt-'+x)?.classList.toggle('on',x===t));
+  ({charts:showCharts,log:showLog,anal:showAnal}[t]||showCharts)();
+}
+
+function showCharts(){
+  const sessions=getSessions(), checkins=getCheckins();
+  const days=Array.from({length:30},(_,i)=>ago(29-i));
+
+  const painByD={}, swByD={}, stByD={}, romByD={};
+  sessions.forEach(s=>{
+    const p=s.exercises?.map(e=>e.pain).filter(v=>v>0)||[];
+    if(p.length) painByD[s.date]=avg(p);
+    const r=s.exercises?.map(e=>+e.rom).filter(v=>v>0)||[];
+    if(r.length) romByD[s.date]=Math.max(...r);
+  });
+  checkins.forEach(c=>{
+    if(c.swelling!=null) swByD[c.date]=c.swelling;
+    if(c.stiffness!=null) stByD[c.date]=c.stiffness;
+  });
+
+  const wkVol={};
+  sessions.forEach(s=>{
+    const wk=wkKey(s.date); let v=0;
+    s.exercises?.forEach(e=>{v+=(+e.sets||1)*(+e.reps||1)});
+    wkVol[wk]=(wkVol[wk]||0)+v;
+  });
+  const wks=Object.keys(wkVol).sort().slice(-8);
+
+  const lbl=days.map(d=>fds(d));
+  const dark2=document.documentElement.dataset.theme==='dark';
+  const gc=dark2?'#243349':'#f1f5f9', tc=dark2?'#7a96b4':'#94a3b8';
+
+  el('pc').innerHTML=`
+  <div class="st">Exercise Pain & Gem. Pijn Overdag (30d)</div>
+  <div class="card"><div class="cw"><canvas id="cPain"></canvas></div></div>
+  <div class="st">Swelling & Stiffness (30d)</div>
+  <div class="card"><div class="cw"><canvas id="cSwell"></canvas></div></div>
+  <div class="st">Range of Motion (30d)</div>
+  <div class="card"><div class="cw"><canvas id="cROM"></canvas></div></div>
+  <div class="st">Weekly Training Volume</div>
+  <div class="card"><div class="cw"><canvas id="cVol"></canvas></div></div>`;
+
+  const base={responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10},color:tc}}},
+    scales:{x:{ticks:{maxTicksLimit:6,font:{size:10},color:tc},grid:{color:gc}},
+            y:{min:0,max:10,ticks:{font:{size:10},color:tc},grid:{color:gc}}}};
+
+  mkC('cPain',{type:'line',data:{labels:lbl,datasets:[
+    {label:'Exercise Pain',data:days.map(d=>painByD[d]??null),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.1)',fill:true,tension:.3,spanGaps:true,pointRadius:3},
+    {label:'Gem. Pijn Overdag',data:days.map(d=>swByD[d]!=null?checkins.find(c=>c.date===d)?.restingPain:null??null),borderColor:'#f97316',fill:false,tension:.3,spanGaps:true,pointRadius:3,borderDash:[4,2]}
+  ]},options:{...base}});
+
+  mkC('cSwell',{type:'line',data:{labels:lbl,datasets:[
+    {label:'Swelling',data:days.map(d=>swByD[d]??null),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.1)',fill:true,tension:.3,spanGaps:true,pointRadius:3},
+    {label:'Stiffness',data:days.map(d=>stByD[d]??null),borderColor:'#7c3aed',fill:false,tension:.3,spanGaps:true,pointRadius:3,borderDash:[4,2]}
+  ]},options:{...base}});
+
+  mkC('cROM',{type:'line',data:{labels:lbl,datasets:[
+    {label:'Max ROM (°)',data:days.map(d=>romByD[d]??null),borderColor:'#059669',backgroundColor:'rgba(5,150,105,.1)',fill:true,tension:.3,spanGaps:true,pointRadius:3}
+  ]},options:{...base,scales:{...base.scales,y:{min:0,max:180,ticks:{font:{size:10},color:tc},grid:{color:gc}}}}});
+
+  mkC('cVol',{type:'bar',data:{labels:wks,datasets:[
+    {label:'Sets×Reps',data:wks.map(w=>wkVol[w]),backgroundColor:'rgba(37,99,235,.7)',borderRadius:4}
+  ]},options:{...base,scales:{x:{ticks:{font:{size:10},color:tc},grid:{display:false}},y:{min:0,ticks:{font:{size:10},color:tc},grid:{color:gc}}}}});
+}
+
+function wkKey(d){
+  const dt=new Date(d+'T12:00'); const day=dt.getDay()||7;
+  dt.setDate(dt.getDate()-day+1); return dt.toISOString().slice(0,10);
+}
+
+function mkC(id,cfg){
+  const c=el(id); if(!c) return;
+  if(charts[id]) try{charts[id].destroy()}catch{}
+  charts[id]=new Chart(c,cfg);
+}
+
+function showLog(){
+  const sessions=getSessions().slice().reverse().slice(0,30);
+  const checkins=getCheckins().slice().reverse().slice(0,30);
+  if(!sessions.length&&!checkins.length){
+    el('pc').innerHTML=`<div class="empty"><div class="ei">📋</div><p>No data yet.</p></div>`;return;
+  }
+  el('pc').innerHTML=`
+  <div class="st">Recent Sessions</div>
+  ${sessions.length?sessions.map(s=>`
+    <div class="card" style="padding:11px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div style="font-size:14px;font-weight:600">${fd(s.date)}</div>
+        <span class="badge bb">${(SCHEDS[s.sched]||SCHEDS.str).label.replace(/💪 |🎾 /,'')}</span>
+      </div>
+      ${s.exercises?.map(e=>{
+        let load='';
+        if(e.sets&&e.reps) load=`${e.sets}×${e.reps}${e.weight?` @${e.weight}kg`:''}`;
+        else if(e.hold) load=`${e.sets||1}×${e.hold}s`;
+        else if(e.dur) load=`${e.dur}min`;
+        return `<div style="font-size:13px;color:var(--muted);padding:2px 0">${e.n}${load?` — ${load}`:''}${e.pain>0?` <span style="color:var(--bad)">P${e.pain}</span>`:''}`;
+      }).join('')||''}
+      ${s.extra?`<div style="font-size:12px;color:var(--muted);margin-top:4px">+ ${s.extra}</div>`:''}
+    </div>`).join(''):`<div class="empty"><div class="ei">💪</div><p>No sessions logged yet.</p></div>`}
+
+  <div class="st">Recent Check-ins</div>
+  ${checkins.length?checkins.map(c=>`
+    <div class="card" style="padding:11px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">${fd(c.date)}</div>
+      <div class="sg3">
+        <div class="sb" style="padding:8px"><div class="v" style="font-size:16px">${c.stiffness??'—'}</div><div class="l">Stiffness</div></div>
+        <div class="sb" style="padding:8px"><div class="v" style="font-size:16px">${c.swelling??'—'}</div><div class="l">Swelling</div></div>
+        <div class="sb" style="padding:8px"><div class="v" style="font-size:16px">${c.restingPain??'—'}</div><div class="l">Gem. Pijn</div></div>
+      </div>
+      ${c.journal?`<div style="font-size:13px;color:var(--muted);margin-top:8px">${c.journal.slice(0,80)}${c.journal.length>80?'…':''}</div>`:''}
+    </div>`).join(''):`<div class="empty"><div class="ei">📋</div><p>No check-ins yet.</p></div>`}`;
+}
+
+function showAnal(){
+  const sessions=getSessions(), checkins=getCheckins();
+  let html='';
+  for(let w=0;w<4;w++){
+    const wEnd=ago(w*7), wStart=ago(w*7+7);
+    const ws=sessions.filter(s=>s.date>wStart&&s.date<=wEnd);
+    const wc=checkins.filter(c=>c.date>wStart&&c.date<=wEnd);
+    if(!ws.length&&!wc.length) continue;
+    const lbl=w===0?'This Week':w===1?'Last Week':`${w*7}–${(w+1)*7} days ago`;
+    const an=generateAnalysis(ws,wc);
+    html+=`<div class="st">${lbl}</div>
+    <div class="card">
+      ${an?`<div class="anal"><p>${an.summary}</p>${an.recs.length?`<ul>${an.recs.map(r=>`<li>${r}</li>`).join('')}</ul>`:''}</div>`
+         :`<p style="font-size:14px;color:var(--muted)">Not enough data for analysis.</p>`}
+      <div class="sg2" style="margin-top:10px">
+        <div class="sb"><div class="v">${ws.length}</div><div class="l">Sessions</div></div>
+        <div class="sb"><div class="v">${wc.length}</div><div class="l">Check-ins</div></div>
+      </div>
+    </div>`;
+  }
+  el('pc').innerHTML=html||`<div class="empty"><div class="ei">📊</div><p>Log sessions and check-ins to see weekly analysis.</p></div>`;
+}
+
+// ── MORE ─────────────────────────────────────────────────────
+function rMore(){
+  el('scr').innerHTML=`
+  <div class="st">Export</div>
+  <div class="card" style="padding:10px">
+    <div class="li" style="cursor:pointer" onclick="exportCSV()"><span style="font-size:14px;font-weight:500">📊 Export as CSV</span><span>→</span></div>
+    <div class="li" style="cursor:pointer;border:none" onclick="exportJSON()"><span style="font-size:14px;font-weight:500">💾 Backup as JSON</span><span>→</span></div>
+  </div>
+  <div class="st">Data</div>
+  <div class="card" style="padding:10px">
+    <div class="li" style="cursor:pointer" onclick="importJSON()"><span style="font-size:14px;font-weight:500">📥 Restore from JSON</span><span>→</span></div>
+    <div class="li" style="cursor:pointer;border:none" onclick="manageCustom()"><span style="font-size:14px;font-weight:500">⚙️ Custom Exercises</span><span>${getCustomEx().length} added</span></div>
+  </div>
+  <div class="st">App</div>
+  <div class="card" style="padding:10px">
+    <div class="li">
+      <span style="font-size:14px;font-weight:500">Dark Mode</span>
+      <button class="btn bg bsm" style="width:auto" onclick="toggleTheme()">${dark?'☀️ Light':'🌙 Dark'}</button>
+    </div>
+    <div class="li" style="cursor:pointer" onclick="showInstall()"><span style="font-size:14px;font-weight:500">📱 Add to Home Screen</span><span>→</span></div>
+    <div class="li" style="cursor:pointer;border:none" onclick="showDisclaimer()"><span style="font-size:14px;font-weight:500">⚕️ Disclaimer</span><span>→</span></div>
+  </div>
+  <div class="note" style="margin-top:6px">🔒 <span>All data stored exclusively on this device. Nothing is sent anywhere.</span></div>
+  <div style="text-align:center;padding:16px 0 6px;font-size:11px;color:var(--muted)">Guidopractor Tracker — v1.0</div>`;
+}
+
+// ── EXPORT ───────────────────────────────────────────────────
+function exportCSV(){
+  const sessions=getSessions(), checkins=getCheckins();
+  let csv='Date,Schedule,Exercise,Sets,Reps,Weight(kg),Hold(sec),Duration(min),Pain(0-10),RPE(0-10),ROM(deg),Notes\n';
+  sessions.forEach(s=> s.exercises?.forEach(e=>{
+    csv+=[s.date,s.sched,`"${e.n}"`,e.sets||'',e.reps||'',e.weight||'',e.hold||'',e.dur||'',e.pain!=null?e.pain:'',e.rpe!=null?e.rpe:'',e.rom||'',`"${(e.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';
+  }));
+  csv+='\n\nDate,Stiffness,Swelling,GemPijnOverdag,Journal\n';
+  checkins.forEach(c=>{ csv+=[c.date,c.stiffness??'',c.swelling??'',c.restingPain??'',`"${(c.journal||'').replace(/"/g,'""')}"`].join(',')+'\n'; });
+  dl(csv,`knee-rehab-${td()}.csv`,'text/csv');
+  toast('CSV downloaded!','ok');
+}
+
+function exportJSON(){
+  const data={exportedAt:new Date().toISOString(),version:1,sessions:getSessions(),checkins:getCheckins(),customEx:getCustomEx()};
+  dl(JSON.stringify(data,null,2),`knee-rehab-backup-${td()}.json`,'application/json');
+  toast('Backup downloaded!','ok');
+}
+
+function importJSON(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
+  inp.onchange=async e=>{
+    const file=e.target.files[0]; if(!file) return;
+    try{
+      const d=JSON.parse(await file.text());
+      if(!d.sessions||!d.checkins) throw 0;
+      if(!confirm(`Restore ${d.sessions.length} sessions + ${d.checkins.length} check-ins? Merges with existing data.`)) return;
+      const es=getSessions(), ec=getCheckins();
+      d.sessions.forEach(s=>{ if(!es.find(x=>x.id===s.id)) es.push(s) });
+      d.checkins.forEach(c=>{ if(!ec.find(x=>x.date===c.date)) ec.push(c) });
+      LS.set('sessions',es); LS.set('checkins',ec);
+      if(d.customEx) LS.set('customEx',d.customEx);
+      toast('Restored!','ok');
+    }catch{ toast('Invalid backup file','err') }
+  };
+  inp.click();
+}
+
+function dl(content,name,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=name; a.click();
+}
+
+function manageCustom(){
+  const cx=getCustomEx();
+  el('mc').innerHTML=`<div class="ov" onclick="if(event.target===this)closeM()">
+    <div class="mod">
+      <div class="handle"></div>
+      <h2 style="font-size:16px;margin-bottom:12px">Custom Exercises</h2>
+      <div id="cxList">
+        ${cx.length?cx.map((n,i)=>`<div class="li"><span style="font-size:14px">${n}</span>
+          <button class="btn bd bsm" style="width:auto" onclick="rmCX(${i})">Remove</button></div>`).join('')
+          :`<p style="font-size:14px;color:var(--muted)">No custom exercises.</p>`}
+      </div>
+      <div class="div"></div>
+      <div class="f"><label>Add New</label><input type="text" id="cxInp" placeholder="Exercise name"></div>
+      <div class="row">
+        <button class="btn bg" onclick="closeM()">Done</button>
+        <button class="btn bp" onclick="addCX()">Add</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function addCX(){
+  const n=el('cxInp')?.value.trim(); if(!n) return;
+  const cx=getCustomEx(); if(!cx.includes(n)){cx.push(n);LS.set('customEx',cx)}
+  manageCustom();
+}
+function rmCX(i){ const cx=getCustomEx(); cx.splice(i,1); LS.set('customEx',cx); manageCustom(); }
+
+function showInstall(){
+  el('mc').innerHTML=`<div class="ov" onclick="if(event.target===this)closeM()">
+    <div class="mod">
+      <div class="handle"></div>
+      <h2 style="font-size:16px;margin-bottom:14px">Add to Home Screen</h2>
+      <div style="margin-bottom:14px">
+        <div style="font-weight:700;margin-bottom:6px">📱 iOS Safari</div>
+        <ol style="font-size:14px;line-height:1.9;padding-left:18px;color:var(--muted)">
+          <li>Open in <strong style="color:var(--text)">Safari</strong></li>
+          <li>Tap the <strong style="color:var(--text)">Share</strong> button</li>
+          <li>Tap <strong style="color:var(--text)">"Add to Home Screen"</strong></li>
+        </ol>
+      </div>
+      <div class="div"></div>
+      <div style="margin-bottom:14px">
+        <div style="font-weight:700;margin-bottom:6px">🤖 Android Chrome</div>
+        <ol style="font-size:14px;line-height:1.9;padding-left:18px;color:var(--muted)">
+          <li>Open in <strong style="color:var(--text)">Chrome</strong></li>
+          <li>Tap <strong style="color:var(--text)">⋮ menu → "Add to Home Screen"</strong></li>
+        </ol>
+      </div>
+      <div class="note">💡 <span>Opening as a local file works on Android. On iOS, host the file on a local server or any web host for full "add to home screen" support.</span></div>
+      <button class="btn bp" style="margin-top:14px" onclick="closeM()">Got it</button>
+    </div>
+  </div>`;
+}
+
+function closeM(){ el('mc').innerHTML=''; }
+
+// ── INIT ─────────────────────────────────────────────────────
+applyTheme();
+checkDisclaimer();
+go('home');
+</script>
+</body>
+</html>
