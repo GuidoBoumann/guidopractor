@@ -867,40 +867,115 @@ const KNEE_VIEWS = {
   frontal: {
     label:'Voorzijde',
     path:`
-      <ellipse cx="50" cy="30" rx="22" ry="28" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
-      <ellipse cx="50" cy="100" rx="26" ry="32" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
-      <ellipse cx="50" cy="98" rx="14" ry="12" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="3,2" opacity=".5"/>
-      <line x1="28" y1="62" x2="28" y2="72" stroke="var(--border)" stroke-width="2"/>
-      <line x1="72" y1="62" x2="72" y2="72" stroke="var(--border)" stroke-width="2"/>
-      <ellipse cx="50" cy="67" rx="22" ry="8" fill="var(--primary-l)" stroke="var(--primary)" stroke-width="1.5" opacity=".6"/>
-      <text x="50" y="160" text-anchor="middle" font-size="9" fill="var(--muted)">Voorzijde</text>`
+<rect width="100" height="165" fill="#FDF8F2"/>
+<path d="M29,5 C25,9 20,24 18,46 C17,62 18,75 22,83 C25,88 30,92 37,94 C41,95 45,95 50,95 C55,95 59,95 63,94 C70,92 75,88 78,83 C82,75 83,62 82,46 C80,24 75,9 71,5 Z" fill="#ECC9A0" stroke="#7B4E2C" stroke-width="1.5"/>
+<rect x="44" y="5" width="12" height="82" rx="6" fill="#F5E4C0" stroke="#C8A060" stroke-width="0.8" opacity=".5"/>
+<path d="M72,6 C74,26 74,55 68,80" fill="none" stroke="#A06838" stroke-width="1" opacity=".45"/>
+<path d="M28,6 C26,26 26,55 32,80" fill="none" stroke="#A06838" stroke-width="1" opacity=".45"/>
+<line x1="50" y1="6" x2="50" y2="72" stroke="#A06838" stroke-width="0.8" stroke-dasharray="4,3" opacity=".4"/>
+<path d="M22,72 C18,66 21,58 28,62 C34,67 33,82 26,90" fill="#D4A478" stroke="#7B4E2C" stroke-width="0.8" opacity=".55"/>
+<path d="M41,72 L40,62 M59,72 L60,62" stroke="#C8A060" stroke-width="2.5" stroke-linecap="round"/>
+<ellipse cx="50" cy="78" rx="10" ry="11" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1.5"/>
+<path d="M43,89 L42,99 M57,89 L58,99" stroke="#C8A060" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M22,84 C20,89 20,95 24,98 C27,100 33,100 37,97 L38,93" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1.2"/>
+<path d="M78,84 C80,89 80,95 76,98 C73,100 67,100 63,97 L62,93" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1.2"/>
+<path d="M42,99 C42,104 50,106 58,104 L58,99" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1"/>
+<line x1="21" y1="100" x2="79" y2="100" stroke="#7B4E2C" stroke-width="0.8" stroke-dasharray="3,2" opacity=".4"/>
+<path d="M21,100 C19,110 18,124 20,140 C22,154 30,160 38,162 L62,162 C70,160 78,154 80,140 C82,124 81,110 79,100" fill="#ECC9A0" stroke="#7B4E2C" stroke-width="1.5"/>
+<path d="M50,106 C49,124 48,142 48,162" stroke="#F5E4C0" stroke-width="5" stroke-linecap="round" fill="none" opacity=".7"/>
+<path d="M47,106 C45,126 44,146 45,162 M53,106 C55,126 56,146 55,162" stroke="#C8A060" stroke-width="0.8" fill="none" opacity=".5"/>
+<path d="M35,104 C29,116 27,130 30,145 C33,154 38,160 42,162" fill="none" stroke="#A06838" stroke-width="1.2" opacity=".5"/>
+<path d="M65,104 C71,116 73,130 70,145 C67,154 62,160 58,162" fill="none" stroke="#A06838" stroke-width="1.2" opacity=".5"/>
+<path d="M68,104 C70,120 70,142 68,160" fill="none" stroke="#C8A060" stroke-width="2" opacity=".35"/>
+<ellipse cx="40" cy="161" rx="5" ry="3" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1"/>
+<ellipse cx="63" cy="162" rx="5" ry="3" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1"/>
+<text x="14" y="10" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">Quad</text>
+<text x="14" y="80" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">VM</text>
+<text x="40" y="79" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".9">Patella</text>
+<text x="31" y="110" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">Tibia</text>
+<text x="50" y="164" text-anchor="middle" font-size="8" fill="#7B4E2C" font-family="sans-serif" font-weight="bold">Voorzijde</text>`
   },
   medial: {
     label:'Binnenkant',
     path:`
-      <path d="M50,8 C35,8 28,18 28,30 L28,58 C28,62 32,66 36,67 L36,75 C32,76 28,80 28,85 L28,118 C28,130 35,148 50,150 C65,148 72,130 72,118 L72,85 C72,80 68,76 64,75 L64,67 C68,66 72,62 72,58 L72,30 C72,18 65,8 50,8 Z" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
-      <ellipse cx="36" cy="71" rx="6" ry="5" fill="var(--primary-l)" stroke="var(--primary)" stroke-width="1.5" opacity=".7"/>
-      <path d="M36,67 Q30,71 36,75" fill="none" stroke="var(--primary)" stroke-width="1" opacity=".5"/>
-      <text x="50" y="160" text-anchor="middle" font-size="9" fill="var(--muted)">Binnenkant</text>`
+<rect width="100" height="165" fill="#FDF8F2"/>
+<path d="M25,4 C55,3 68,4 72,5 C76,16 78,35 78,54 C78,65 76,74 72,83 C70,87 68,90 66,95 C66,100 68,112 70,124 C72,134 70,144 65,155 C62,160 57,162 52,162 L40,162 C36,161 33,157 31,151 C30,143 28,130 28,115 C28,106 28,100 28,96 C24,96 18,93 15,89 C12,85 13,80 17,77 C21,74 24,71 25,66 C25,52 24,36 24,18 C24,10 24,5 25,4 Z" fill="#ECC9A0" stroke="#7B4E2C" stroke-width="1.5"/>
+<path d="M37,5 C36,25 36,50 36,78 L50,78 C50,50 51,25 52,5 Z" fill="#F5E4C0" stroke="#C8A060" stroke-width="0.8" opacity=".5"/>
+<path d="M68,6 C68,30 68,60 65,80 M62,6 C62,30 61,58 59,80" fill="none" stroke="#A06838" stroke-width="1" opacity=".4"/>
+<line x1="27" y1="6" x2="26" y2="72" stroke="#A06838" stroke-width="1" opacity=".4" stroke-dasharray="4,3"/>
+<path d="M21,77 L22,67" stroke="#C8A060" stroke-width="2.5" stroke-linecap="round"/>
+<ellipse cx="18" cy="83" rx="7" ry="9" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1.5"/>
+<path d="M19,92 L24,103" stroke="#C8A060" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M38,78 C42,83 48,88 54,89 C60,89 64,86 66,82" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1.2"/>
+<line x1="46" y1="89" x2="42" y2="104" stroke="#C8A060" stroke-width="1.5" opacity=".6"/>
+<path d="M26,97 C40,99 55,99 66,97" stroke="#7B4E2C" stroke-width="0.8" stroke-dasharray="3,2" opacity=".45" fill="none"/>
+<path d="M28,100 C28,120 28,140 31,160" stroke="#F5E4C0" stroke-width="5" stroke-linecap="round" fill="none" opacity=".7"/>
+<path d="M50,100 C55,104 60,112 64,124 C66,134 64,146 60,155" fill="#D4A478" stroke="#7B4E2C" stroke-width="0.8" opacity=".55"/>
+<path d="M60,148 C58,156 52,162 46,162" fill="none" stroke="#C8A060" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+<ellipse cx="39" cy="161" rx="6" ry="4" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1"/>
+<text x="26" y="10" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">Quad</text>
+<text x="65" y="10" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">HS</text>
+<text x="2" y="85" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".9">Pat.</text>
+<text x="52" y="86" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">Condyl</text>
+<text x="54" y="120" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">Kuit</text>
+<text x="50" y="164" text-anchor="middle" font-size="8" fill="#7B4E2C" font-family="sans-serif" font-weight="bold">Binnenkant</text>`
   },
   lateral: {
     label:'Buitenkant',
     path:`
-      <path d="M50,8 C35,8 28,18 28,30 L28,58 C28,62 32,66 36,67 L36,75 C32,76 28,80 28,85 L28,118 C28,130 35,148 50,150 C65,148 72,130 72,118 L72,85 C72,80 68,76 64,75 L64,67 C68,66 72,62 72,58 L72,30 C72,18 65,8 50,8 Z" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
-      <ellipse cx="64" cy="71" rx="6" ry="5" fill="var(--primary-l)" stroke="var(--primary)" stroke-width="1.5" opacity=".7"/>
-      <path d="M64,67 Q70,71 64,75" fill="none" stroke="var(--primary)" stroke-width="1" opacity=".5"/>
-      <text x="50" y="160" text-anchor="middle" font-size="9" fill="var(--muted)">Buitenkant</text>`
+<rect width="100" height="165" fill="#FDF8F2"/>
+<path d="M25,4 C55,3 68,4 72,5 C76,16 78,35 78,54 C78,65 76,74 72,83 C70,87 68,90 66,95 C66,100 68,112 70,124 C72,134 70,144 65,155 C62,160 57,162 52,162 L40,162 C36,161 33,157 31,151 C30,143 28,130 28,115 C28,106 28,100 28,96 C24,96 18,93 15,89 C12,85 13,80 17,77 C21,74 24,71 25,66 C25,52 24,36 24,18 C24,10 24,5 25,4 Z" fill="#ECC9A0" stroke="#7B4E2C" stroke-width="1.5"/>
+<path d="M37,5 C36,25 36,50 36,78 L50,78 C50,50 51,25 52,5 Z" fill="#F5E4C0" stroke="#C8A060" stroke-width="0.8" opacity=".5"/>
+<path d="M66,6 C68,30 68,58 66,82" fill="none" stroke="#C8A060" stroke-width="2" opacity=".5"/>
+<path d="M72,6 C72,30 72,60 70,80" fill="none" stroke="#A06838" stroke-width="1" opacity=".4"/>
+<line x1="27" y1="6" x2="26" y2="72" stroke="#A06838" stroke-width="1" opacity=".4" stroke-dasharray="4,3"/>
+<path d="M21,77 L22,67" stroke="#C8A060" stroke-width="2.5" stroke-linecap="round"/>
+<ellipse cx="18" cy="83" rx="7" ry="9" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1.5"/>
+<path d="M19,92 L24,103" stroke="#C8A060" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M38,78 C42,83 48,88 54,89 C60,89 64,86 66,82" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1.2"/>
+<ellipse cx="68" cy="98" rx="6" ry="5" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1.2"/>
+<path d="M26,97 C40,99 55,99 66,97" stroke="#7B4E2C" stroke-width="0.8" stroke-dasharray="3,2" opacity=".45" fill="none"/>
+<path d="M28,100 C28,120 28,140 31,160" stroke="#F5E4C0" stroke-width="5" stroke-linecap="round" fill="none" opacity=".7"/>
+<path d="M68,104 C68,120 68,140 66,158" fill="none" stroke="#F5E4C0" stroke-width="2.5" opacity=".5"/>
+<path d="M70,104 C72,118 72,134 69,152" fill="none" stroke="#A06838" stroke-width="1" opacity=".4"/>
+<path d="M50,100 C55,104 60,112 64,124 C66,134 64,146 60,155" fill="#D4A478" stroke="#7B4E2C" stroke-width="0.8" opacity=".55"/>
+<path d="M60,148 C58,156 52,162 46,162" fill="none" stroke="#C8A060" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+<ellipse cx="62" cy="162" rx="6" ry="4" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1"/>
+<text x="26" y="10" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">Quad</text>
+<text x="65" y="10" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">HS</text>
+<text x="2" y="85" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".9">Pat.</text>
+<text x="52" y="86" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">Condyl</text>
+<text x="68" y="108" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".8">Fib.</text>
+<text x="54" y="120" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">Kuit</text>
+<text x="50" y="164" text-anchor="middle" font-size="8" fill="#7B4E2C" font-family="sans-serif" font-weight="bold">Buitenkant</text>`
   },
   dorsal: {
     label:'Achterkant',
     path:`
-      <ellipse cx="50" cy="30" rx="20" ry="26" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
-      <ellipse cx="50" cy="105" rx="24" ry="30" fill="var(--surface2)" stroke="var(--border)" stroke-width="2"/>
-      <ellipse cx="50" cy="67" rx="20" ry="9" fill="var(--primary-l)" stroke="var(--primary)" stroke-width="1.5" opacity=".6"/>
-      <path d="M34,58 Q28,67 34,76" fill="none" stroke="var(--border)" stroke-width="2"/>
-      <path d="M66,58 Q72,67 66,76" fill="none" stroke="var(--border)" stroke-width="2"/>
-      <ellipse cx="50" cy="67" rx="9" ry="6" fill="none" stroke="var(--primary)" stroke-width="1" stroke-dasharray="2,2" opacity=".5"/>
-      <text x="50" y="160" text-anchor="middle" font-size="9" fill="var(--muted)">Achterkant</text>`
+<rect width="100" height="165" fill="#FDF8F2"/>
+<path d="M29,5 C25,9 20,24 18,46 C17,62 18,74 22,82 C25,87 30,91 37,93 L63,93 C70,91 75,87 78,82 C82,74 83,62 82,46 C80,24 75,9 71,5 Z" fill="#ECC9A0" stroke="#7B4E2C" stroke-width="1.5"/>
+<rect x="44" y="5" width="12" height="82" rx="6" fill="#F5E4C0" stroke="#C8A060" stroke-width="0.8" opacity=".45"/>
+<path d="M36,6 C34,25 33,52 34,80" fill="none" stroke="#A06838" stroke-width="1.2" opacity=".45"/>
+<path d="M42,6 C40,25 40,52 40,80" fill="none" stroke="#A06838" stroke-width="1" opacity=".35"/>
+<path d="M64,6 C66,25 67,52 66,80" fill="none" stroke="#A06838" stroke-width="1.2" opacity=".45"/>
+<path d="M37,86 C40,92 50,96 60,92 C64,90 67,87 67,85" fill="#D4A478" stroke="#7B4E2C" stroke-width="0.8" opacity=".4"/>
+<path d="M22,84 C20,89 21,95 25,98 C28,100 34,100 37,97" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1.2"/>
+<path d="M78,84 C80,89 79,95 75,98 C72,100 66,100 63,97" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1.2"/>
+<line x1="21" y1="100" x2="79" y2="100" stroke="#7B4E2C" stroke-width="0.8" stroke-dasharray="3,2" opacity=".4"/>
+<path d="M21,100 C18,108 17,120 19,134 C21,148 28,158 38,162 L62,162 C72,158 79,148 81,134 C83,120 82,108 79,100" fill="#ECC9A0" stroke="#7B4E2C" stroke-width="1.5"/>
+<path d="M37,102 C32,108 28,118 28,130 C28,140 32,152 37,160" fill="#D4A478" stroke="#7B4E2C" stroke-width="1" opacity=".6"/>
+<path d="M63,102 C68,108 72,118 72,130 C72,140 68,152 63,160" fill="#D4A478" stroke="#7B4E2C" stroke-width="1" opacity=".6"/>
+<line x1="50" y1="100" x2="50" y2="150" stroke="#7B4E2C" stroke-width="0.8" opacity=".4"/>
+<path d="M30,132 C28,142 30,154 36,160 M70,132 C72,142 70,154 64,160" fill="none" stroke="#A06838" stroke-width="1" opacity=".4"/>
+<path d="M43,150 C43,158 50,162 57,158 L57,150" fill="none" stroke="#C8A060" stroke-width="2" opacity=".7"/>
+<ellipse cx="36" cy="160" rx="5" ry="3" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1"/>
+<ellipse cx="66" cy="162" rx="5" ry="3" fill="#F5E4C0" stroke="#7B4E2C" stroke-width="1"/>
+<text x="24" y="15" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">Hamstrings</text>
+<text x="28" y="50" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">Semi</text>
+<text x="64" y="50" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".7">BF</text>
+<text x="30" y="115" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".8">Gastro</text>
+<text x="44" y="158" font-size="7" fill="#7B4E2C" font-family="sans-serif" opacity=".8">Achilles</text>
+<text x="50" y="164" text-anchor="middle" font-size="8" fill="#7B4E2C" font-family="sans-serif" font-weight="bold">Achterkant</text>`
   }
 };
 
