@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Guidopractor</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --bg:#eef2f7; --surface:#fff; --surface2:#f4f7fb;
@@ -1181,6 +1182,7 @@ function showAnal(){
 // ── MORE ─────────────────────────────────────────────────────
 function rMore(){
   el('scr').innerHTML=`
+  <button class="btn bp" style="margin-bottom:12px;font-size:16px" onclick="exportFysioReport()">📄 Weekrapport voor Fysio (PDF)</button>
   <div class="st">Export</div>
   <div class="card" style="padding:10px">
     <div class="li" style="cursor:pointer" onclick="exportCSV()"><span style="font-size:14px;font-weight:500">📊 Export as CSV</span><span>→</span></div>
@@ -1202,6 +1204,181 @@ function rMore(){
   </div>
   <div class="note" style="margin-top:6px">🔒 <span>All data stored exclusively on this device. Nothing is sent anywhere.</span></div>
   <div style="text-align:center;padding:16px 0 6px;font-size:11px;color:var(--muted)">Guidopractor Tracker — v1.0</div>`;
+}
+
+// ── FYSIO PDF REPORT ─────────────────────────────────────────
+function exportFysioReport(){
+  if(!window.jspdf){toast('PDF library laden...','info'); setTimeout(exportFysioReport,1000); return;}
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({unit:'mm',format:'a4'});
+
+  const sessions = getSessions();
+  const checkins = getCheckins();
+  const weekStart = ago(6); // last 7 days
+  const wSessions = sessions.filter(s=>s.date>=weekStart&&s.date<=td());
+  const wCheckins = checkins.filter(c=>c.date>=weekStart&&c.date<=td());
+
+  const blue=[37,99,235], dark=[26,42,58], muted=[94,116,145], white=[255,255,255];
+  const pageW=210, margin=14;
+  let y=0;
+
+  // ── HEADER ──
+  doc.setFillColor(...blue);
+  doc.rect(0,0,pageW,28,'F');
+  doc.setTextColor(...white);
+  doc.setFontSize(18); doc.setFont('helvetica','bold');
+  doc.text('Guidopractor — Weekrapport Fysio', margin, 12);
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text(`Periode: ${fd(weekStart)} t/m ${fd(td())}`, margin, 20);
+  doc.text(`Gegenereerd: ${fd(td())}`, pageW-margin, 20, {align:'right'});
+  y=34;
+
+  // ── WEEK SUMMARY ──
+  doc.setTextColor(...dark);
+  doc.setFontSize(12); doc.setFont('helvetica','bold');
+  doc.text('Weekoverzicht', margin, y); y+=6;
+
+  const strSess=wSessions.filter(s=>s.sched==='str'||s.sched==='s1');
+  const ftwSess=wSessions.filter(s=>s.sched==='ftw'||s.sched==='s2');
+  const othSess=wSessions.filter(s=>s.sched==='other');
+  const allPain=[]; wSessions.forEach(s=>s.exercises?.forEach(e=>{if(e.pain>0)allPain.push(e.pain)}));
+  const avgPain=avg(allPain), avgSwl=avg(wCheckins.map(c=>c.swelling).filter(v=>v!=null));
+  const avgStiff=avg(wCheckins.map(c=>c.stiffness).filter(v=>v!=null));
+  const avgDayPain=avg(wCheckins.map(c=>c.restingPain).filter(v=>v!=null));
+
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  const sumLines=[
+    [`Schema 1 (Kracht):`, `${strSess.length} sessie${strSess.length!==1?'s':''}`],
+    [`Schema 2 (Footwork):`, `${ftwSess.length} sessie${ftwSess.length!==1?'s':''}`],
+    [`Andere training:`, `${othSess.length} sessie${othSess.length!==1?'s':''}`],
+    [`Gem. pijn tijdens oefening:`, avgPain!=null?`${avgPain.toFixed(1)} / 10`:'—'],
+    [`Gem. pijn overdag:`, avgDayPain!=null?`${avgDayPain.toFixed(1)} / 10`:'—'],
+    [`Gem. zwelling (ochtend):`, avgSwl!=null?`${avgSwl.toFixed(1)} / 10`:'—'],
+    [`Gem. stijfheid (ochtend):`, avgStiff!=null?`${avgStiff.toFixed(1)} / 10`:'—'],
+  ];
+  sumLines.forEach(([lbl,val])=>{
+    doc.setFont('helvetica','bold'); doc.text(lbl,margin,y);
+    doc.setFont('helvetica','normal'); doc.text(val,95,y);
+    y+=5;
+  });
+  y+=4;
+
+  // ── SESSION DETAILS ──
+  const schedOrder=['str','s1','ftw','s2','other'];
+  const schedGroups={str:strSess,ftw:ftwSess,other:othSess,s1:strSess,s2:ftwSess};
+  const rendered=new Set();
+
+  [['str','💪 Schema 1 — Kracht',strSess],['ftw','🎾 Schema 2 — Footwork & Tennis',ftwSess],['other','🏃 Andere Training',othSess]].forEach(([key,label,group])=>{
+    if(!group.length) return;
+
+    // Section header
+    if(y>260){doc.addPage();y=14;}
+    doc.setFillColor(...blue);
+    doc.rect(margin,y,pageW-margin*2,7,'F');
+    doc.setTextColor(...white);
+    doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text(label,margin+2,y+5); y+=11;
+    doc.setTextColor(...dark);
+
+    group.forEach(sess=>{
+      if(y>255){doc.addPage();y=14;}
+      // Session date bar
+      doc.setFillColor(220,228,240);
+      doc.rect(margin,y,pageW-margin*2,6,'F');
+      doc.setFontSize(10); doc.setFont('helvetica','bold');
+      doc.setTextColor(...dark);
+      doc.text(`📅 ${fd(sess.date)}`,margin+2,y+4.5); y+=8;
+
+      if(key==='other'){
+        doc.setFont('helvetica','normal'); doc.setFontSize(10);
+        doc.text(`Activiteit: ${sess.extra||'—'}  |  Duur: ${sess.otherDur||'—'} min`,margin+2,y); y+=5;
+        if(sess.notes){ doc.text(`Notities: ${sess.notes.slice(0,100)}`,margin+2,y); y+=5; }
+        y+=2;
+        return;
+      }
+
+      // Exercises table header
+      doc.setFillColor(240,244,248);
+      doc.rect(margin,y,pageW-margin*2,5.5,'F');
+      doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+      doc.setTextColor(...muted);
+      doc.text('Oefening',margin+1,y+4);
+      doc.text('Sets',100,y+4); doc.text('Reps',112,y+4); doc.text('Gewicht',122,y+4);
+      doc.text('Hold',138,y+4); doc.text('Pijn',150,y+4); doc.text('RPE',161,y+4); doc.text('ROM',171,y+4);
+      y+=6;
+
+      sess.exercises?.forEach((ex,idx)=>{
+        if(y>270){doc.addPage();y=14;}
+        const rowBg = idx%2===0?[255,255,255]:[247,250,253];
+        doc.setFillColor(...rowBg);
+        doc.rect(margin,y,pageW-margin*2,5.5,'F');
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...dark);
+        doc.text((ex.n||'').slice(0,32),margin+1,y+4);
+        doc.text(ex.sets||'—',100,y+4); doc.text(ex.reps||'—',112,y+4);
+        doc.text(ex.weight?`${ex.weight}kg`:'—',122,y+4);
+        doc.text(ex.hold?`${ex.hold}s`:ex.dur?`${ex.dur}m`:'—',138,y+4);
+        doc.text(ex.pain!=null?`${ex.pain}/10`:'—',150,y+4);
+        doc.text(ex.rpe!=null?`${ex.rpe}/10`:'—',161,y+4);
+        doc.text(ex.rom?`${ex.rom}°`:'—',171,y+4);
+        y+=5.5;
+
+        if(ex.notes){
+          doc.setFontSize(8); doc.setTextColor(...muted);
+          doc.text(`  → ${ex.notes.slice(0,80)}`,margin+3,y+3); y+=4.5;
+        }
+      });
+
+      if(sess.notes){
+        doc.setFontSize(9); doc.setTextColor(...muted);
+        doc.text(`Sessie notities: ${sess.notes.slice(0,100)}`,margin+2,y+4); y+=6;
+      }
+      if(sess.extra){ doc.text(`Extra activiteit: ${sess.extra}`,margin+2,y+4); y+=6; }
+      y+=3;
+    });
+  });
+
+  // ── DAILY CHECK-INS ──
+  if(wCheckins.length){
+    if(y>240){doc.addPage();y=14;}
+    doc.setFillColor(...blue);
+    doc.rect(margin,y,pageW-margin*2,7,'F');
+    doc.setTextColor(...white);
+    doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text('Dagelijkse Check-ins',margin+2,y+5); y+=11;
+
+    // Table header
+    doc.setFillColor(240,244,248);
+    doc.rect(margin,y,pageW-margin*2,5.5,'F');
+    doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(...muted);
+    doc.text('Datum',margin+1,y+4); doc.text('Stijfheid',65,y+4); doc.text('Zwelling',90,y+4);
+    doc.text('Gem. Pijn',115,y+4); doc.text('Notities',145,y+4); y+=6;
+
+    [...wCheckins].sort((a,b)=>a.date.localeCompare(b.date)).forEach((c,idx)=>{
+      if(y>275){doc.addPage();y=14;}
+      const rowBg=idx%2===0?[255,255,255]:[247,250,253];
+      doc.setFillColor(...rowBg);
+      doc.rect(margin,y,pageW-margin*2,5.5,'F');
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...dark);
+      doc.text(fd(c.date),margin+1,y+4);
+      doc.text(c.stiffness!=null?`${c.stiffness}/10`:'—',65,y+4);
+      doc.text(c.swelling!=null?`${c.swelling}/10`:'—',90,y+4);
+      doc.text(c.restingPain!=null?`${c.restingPain}/10`:'—',115,y+4);
+      if(c.journal) doc.text(c.journal.slice(0,35),145,y+4);
+      y+=5.5;
+    });
+    y+=4;
+  }
+
+  // ── FOOTER ──
+  const pageCount=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);
+    doc.setFontSize(8); doc.setTextColor(...muted);
+    doc.text(`Guidopractor — Persoonlijk revalidatie-tracking. Niet voor medisch gebruik. Pagina ${i}/${pageCount}`,margin,290);
+  }
+
+  doc.save(`guidopractor-weekrapport-${td()}.pdf`);
+  toast('PDF gedownload!','ok');
 }
 
 // ── EXPORT ───────────────────────────────────────────────────
