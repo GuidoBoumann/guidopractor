@@ -717,31 +717,84 @@ function buildExList(){
   const lss=lastSchedSess(sess.sched);
   let overviewHtml='';
   if(lss){
-    let secRows='';
+    // Check-in the day after the session
+    const dayAfter=(()=>{ const d=new Date(lss.date+'T12:00'); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); })();
+    const nextCI=getCheckins().find(c=>c.date===dayAfter);
+    const sessCI=getCheckins().find(c=>c.date===lss.date);
+
+    // Recovery impact block
+    function ciVal(ci,key){ return ci?.[key]!=null ? ci[key] : null; }
+    function scoreDot(v){
+      if(v==null) return `<span style="color:var(--muted)">—</span>`;
+      const col=v<=3?'var(--ok)':v<=6?'var(--warn)':'var(--bad)';
+      return `<span style="font-size:14px;font-weight:700;color:${col}">${v}</span>`;
+    }
+    function delta(before,after){
+      if(before==null||after==null) return '';
+      const d=after-before;
+      if(d===0) return `<span style="font-size:10px;color:var(--muted)"> =</span>`;
+      const col=d>0?'var(--bad)':'var(--ok)';
+      return `<span style="font-size:10px;font-weight:600;color:${col}"> ${d>0?'▲':'▼'}${Math.abs(d)}</span>`;
+    }
+
+    const ciMetrics=[
+      {key:'stiffness',   lbl:'Stijfheid'},
+      {key:'swelling',    lbl:'Zwelling'},
+      {key:'restingPain', lbl:'Pijn overdag'},
+    ];
+
+    const hasCIData=nextCI||sessCI;
+    let ciBlock='';
+    if(hasCIData){
+      const cols=ciMetrics.map(m=>{
+        const vBefore=ciVal(sessCI,m.key);
+        const vAfter=ciVal(nextCI,m.key);
+        return `<div style="flex:1;text-align:center;padding:6px 4px;background:var(--surface);border-radius:6px">
+          <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">${m.lbl}</div>
+          <div>${scoreDot(vAfter??vBefore)}${vBefore!=null&&vAfter!=null?delta(vBefore,vAfter):''}</div>
+          ${vBefore!=null&&vAfter!=null?`<div style="font-size:9px;color:var(--muted);margin-top:1px">dag erna</div>`:''}
+        </div>`;
+      }).join('');
+      ciBlock=`<div style="margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">
+          Dag na training${nextCI?` (${fds(dayAfter)})`:' — geen check-in'}
+        </div>
+        <div style="display:flex;gap:5px">${cols}</div>
+      </div>`;
+    }
+
+    // Exercises done / skipped
+    const doneNames=[], skippedNames=[];
     sched.sections.forEach(sec=>{
-      let items='';
       sec.exercises.forEach(name=>{
         const prevEx=lss.exercises?.find(e=>e.n===name);
         const done=prevEx&&wasDone(prevEx);
         const info=exInfo(name);
         const summary=prevEx?fmtPrev(prevEx,info):'';
-        items+=`<div style="display:flex;align-items:baseline;gap:5px;padding:3px 0;border-bottom:1px solid var(--border)">
-          <span style="font-size:14px;flex-shrink:0">${done?'✓':'·'}</span>
-          <span style="font-size:12px;font-weight:${done?'600':'400'};color:${done?'var(--text)':'var(--muted)'};flex:1">${name}</span>
-          ${summary?`<span style="font-size:11px;color:var(--ok);font-weight:600;white-space:nowrap">${summary}</span>`:''}
-        </div>`;
+        if(done) doneNames.push({name,summary});
+        else skippedNames.push(name);
       });
-      secRows+=`<div style="margin-bottom:6px">
-        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">${sec.label}</div>
-        ${items}
-      </div>`;
     });
+
+    const doneList=doneNames.map(({name,summary})=>
+      `<div style="display:flex;align-items:baseline;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;font-weight:600;color:var(--text)">✓ ${name}</span>
+        ${summary?`<span style="font-size:11px;color:var(--ok);font-weight:600;white-space:nowrap;margin-left:6px">${summary}</span>`:''}
+      </div>`).join('');
+
+    const skippedList=skippedNames.length
+      ? `<div style="margin-top:6px;font-size:11px;color:var(--muted)">Niet gedaan: ${skippedNames.join(', ')}</div>`
+      : '';
+
     overviewHtml=`<div style="background:var(--surface2);border-radius:var(--rs);border:1.5px solid var(--border);padding:10px 12px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-size:12px;font-weight:700">Vorige sessie</span>
         <span style="font-size:11px;color:var(--muted)">${fd(lss.date)}</span>
       </div>
-      ${secRows}
+      ${ciBlock}
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Oefeningen</div>
+      ${doneList}
+      ${skippedList}
     </div>`;
   }
 
