@@ -455,6 +455,58 @@ function showDisclaimer(){
 }
 
 // ── HOME ─────────────────────────────────────────────────────
+function schedLabel(sched,extra){
+  if(sched==='str'||sched==='s1') return {icon:'💪',text:'Kracht'};
+  if(sched==='ftw'||sched==='s2') return {icon:'🎾',text:'Footwork'};
+  if(sched==='other') return {icon:'🏃',text:extra||'Andere'};
+  return {icon:'💪',text:'Training'};
+}
+
+function buildWeekStrip(sessions,checkins){
+  let cols='';
+  for(let i=6;i>=0;i--){
+    const date=ago(i);
+    const isToday=i===0;
+    const daySessions=sessions.filter(s=>s.date===date);
+    const dayCI=checkins.find(c=>c.date===date);
+    const d=new Date(date+'T12:00');
+    const dayLetter=d.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2);
+    const dayNum=d.getDate();
+
+    const todayStyle=isToday ? 'background:var(--primary);border-radius:8px;' : '';
+    const numColor=isToday ? 'color:#fff' : 'color:var(--text)';
+    const letterColor=isToday ? 'color:rgba(255,255,255,.75)' : 'color:var(--muted)';
+
+    // one pill per session showing the icon + short label
+    const SCHED_COLOR={
+      str:'background:#dbeafe;color:#1d4ed8',
+      s1:'background:#dbeafe;color:#1d4ed8',
+      ftw:'background:#d1fae5;color:#065f46',
+      s2:'background:#d1fae5;color:#065f46',
+      other:'background:#fef3c7;color:#92400e',
+    };
+    let sessionBadges='';
+    daySessions.forEach(s=>{
+      const lbl=schedLabel(s.sched,s.extra);
+      const clr=SCHED_COLOR[s.sched]||'background:var(--primary-l);color:var(--primary)';
+      sessionBadges+=`<span style="display:inline-block;font-size:14px;line-height:1;padding:2px 3px;border-radius:5px;margin-top:2px;${clr}" title="${lbl.text}">${lbl.icon}</span>`;
+    });
+    if(!daySessions.length) sessionBadges=`<span style="font-size:11px;color:var(--border)">·</span>`;
+
+    const ciDot=dayCI
+      ? `<span style="display:block;width:5px;height:5px;border-radius:50%;background:var(--ok);margin:3px auto 0"></span>`
+      : `<span style="display:block;width:5px;height:5px;border-radius:50%;background:transparent;margin:3px auto 0"></span>`;
+
+    cols+=`<div style="flex:1;text-align:center;padding:5px 2px;${todayStyle}">
+      <div style="font-size:10px;font-weight:600;${letterColor}">${dayLetter}</div>
+      <div style="font-size:14px;font-weight:700;line-height:1.2;${numColor}">${dayNum}</div>
+      <div style="min-height:22px;display:flex;flex-direction:column;align-items:center;justify-content:center">${sessionBadges}</div>
+      ${ciDot}
+    </div>`;
+  }
+  return `<div style="display:flex;gap:2px">${cols}</div>`;
+}
+
 function rHome(){
   const sessions=getSessions(), checkins=getCheckins();
   const todaySess=sessions.filter(s=>s.date===td());
@@ -470,14 +522,13 @@ function rHome(){
 
   const streak=calcStreak(sessions,checkins);
   const lastSess=sessions.length?sessions[sessions.length-1]:null;
-
   const analysis=generateAnalysis(sessions,checkins);
 
   el('scr').innerHTML=`
   <div class="note">🔒 <span>All data stored only on this device.</span></div>
 
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <div>
         <div style="font-size:12px;color:var(--muted)">${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}</div>
         <div style="font-size:18px;font-weight:700;margin-top:2px">Good ${greet()}</div>
@@ -486,6 +537,11 @@ function rHome(){
         <div style="font-size:26px;font-weight:700;color:var(--primary)">${streak}</div>
         <div style="font-size:11px;color:var(--muted)">day streak</div>
       </div>
+    </div>
+    ${buildWeekStrip(sessions,checkins)}
+    <div style="display:flex;gap:14px;justify-content:center;margin-top:7px;font-size:10px;color:var(--muted)">
+      <span>💪 Kracht &nbsp;🎾 Footwork &nbsp;🏃 Andere</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok)"></span>check-in</span>
     </div>
   </div>
 
@@ -657,8 +713,40 @@ function buildExList(){
     sec.exercises.forEach(n=>{ if(!sess.exercises.find(e=>e.n===n)) sess.exercises.push(newEx(n)); });
   });
 
+  // Last-session overview for this schedule
+  const lss=lastSchedSess(sess.sched);
+  let overviewHtml='';
+  if(lss){
+    let secRows='';
+    sched.sections.forEach(sec=>{
+      let items='';
+      sec.exercises.forEach(name=>{
+        const prevEx=lss.exercises?.find(e=>e.n===name);
+        const done=prevEx&&wasDone(prevEx);
+        const info=exInfo(name);
+        const summary=prevEx?fmtPrev(prevEx,info):'';
+        items+=`<div style="display:flex;align-items:baseline;gap:5px;padding:3px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:14px;flex-shrink:0">${done?'✓':'·'}</span>
+          <span style="font-size:12px;font-weight:${done?'600':'400'};color:${done?'var(--text)':'var(--muted)'};flex:1">${name}</span>
+          ${summary?`<span style="font-size:11px;color:var(--ok);font-weight:600;white-space:nowrap">${summary}</span>`:''}
+        </div>`;
+      });
+      secRows+=`<div style="margin-bottom:6px">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">${sec.label}</div>
+        ${items}
+      </div>`;
+    });
+    overviewHtml=`<div style="background:var(--surface2);border-radius:var(--rs);border:1.5px solid var(--border);padding:10px 12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:700">Vorige sessie</span>
+        <span style="font-size:11px;color:var(--muted)">${fd(lss.date)}</span>
+      </div>
+      ${secRows}
+    </div>`;
+  }
+
   // Build HTML with section headers
-  let html='';
+  let html=overviewHtml;
   sched.sections.forEach(sec=>{
     html+=`<div class="st" style="margin-top:16px;margin-bottom:6px">${sec.label}</div>`;
     sec.exercises.forEach(name=>{
@@ -687,14 +775,51 @@ function colorPain(i,v){
 }
 
 function prevExData(name){
-  // Find the most recent saved session (excluding current) that has this exercise
   const all=getSessions();
   for(let i=all.length-1;i>=0;i--){
-    if(all[i].id===sess.id) continue;
+    if(sess?.id != null && all[i].id === sess.id) continue;
     const ex=all[i].exercises?.find(e=>e.n===name);
     if(ex) return {...ex, _date: all[i].date};
   }
   return null;
+}
+
+function lastSchedSess(sched){
+  const norm=s=>s==='s1'?'str':s==='s2'?'ftw':s;
+  const target=norm(sched);
+  const all=getSessions();
+  for(let i=all.length-1;i>=0;i--){
+    const s=all[i];
+    if(sess?.id != null && s.id===sess.id) continue;
+    if(norm(s.sched)===target) return s;
+  }
+  return null;
+}
+
+function wasDone(ex){
+  return !!(+ex.sets>0||+ex.reps>0||+ex.hold>0||+ex.dur>0||+ex.weight>0);
+}
+
+function fmtPrev(prev,info){
+  if(!prev) return '';
+  if(info.t==='hold'){
+    const p=[];
+    if(+prev.sets>0) p.push(`${prev.sets}×`);
+    if(+prev.hold>0) p.push(`${prev.hold}s hold`);
+    return p.join(' ');
+  }
+  if(info.t==='dur'){
+    const p=[];
+    if(+prev.dur>0) p.push(`${prev.dur} min`);
+    if(+prev.weight>0) p.push(`lvl ${prev.weight}`);
+    return p.join(' · ');
+  }
+  const p=[];
+  if(+prev.sets>0&&+prev.reps>0) p.push(`${prev.sets}×${prev.reps}`);
+  else if(+prev.sets>0) p.push(`${prev.sets} sets`);
+  else if(+prev.reps>0) p.push(`${prev.reps} reps`);
+  if(+prev.weight>0) p.push(`${prev.weight} kg`);
+  return p.join(' @ ');
 }
 
 function newEx(name){
@@ -706,7 +831,7 @@ function newEx(name){
     weight:prev?.weight ?? '',
     hold:  prev?.hold  ?? '',
     dur:   prev?.dur   ?? '',
-    pain:  0,
+    pain:  prev?.pain  ?? 0,
     rpe:   prev?.rpe   ?? 5,
     rom:   prev?.rom   ?? '',
     notes: '',
@@ -740,30 +865,24 @@ function exCard(ex,i){
       <div style="font-size:13px;font-weight:600">${w.desc}</div>
       <div style="font-size:11px;color:var(--muted)">${w.total} min total</div></div>`).join('');
   } else if(info.t==='hold'){
-    fields=`<div class="grid3">
+    fields=`<div class="grid2" style="flex-wrap:wrap">
       <div class="mf"><label>Sets${prev?.sets?prevHint(prev.sets):''}</label><input type="number" value="${ex.sets}" placeholder="${prev?.sets||''}" oninput="sess.exercises[${i}].sets=this.value"></div>
       <div class="mf"><label>Hold (sec)${prev?.hold?prevHint(prev.hold):''}</label><input type="number" value="${ex.hold}" placeholder="${prev?.hold||''}" oninput="sess.exercises[${i}].hold=this.value"></div>
-      <div class="mf"><label>ROM (°)${prev?.rom?prevHint(prev.rom):''}</label><input type="number" value="${ex.rom||''}" min="0" max="180" placeholder="${prev?.rom||'—'}" oninput="sess.exercises[${i}].rom=this.value"></div>
+      <div class="mf" style="max-width:none;flex:3"><label>Notitie</label><input type="text" value="${ex.notes||''}" placeholder="Notitie" oninput="sess.exercises[${i}].notes=this.value" style="text-align:left"></div>
     </div>`;
   } else if(info.t==='dur'){
-    const isWallSit = ex.n==='Wall Sit Hold';
-    fields=`<div class="grid2">
+    fields=`<div class="grid2" style="flex-wrap:wrap">
       <div class="mf"><label>Duur (min)${prev?.dur?prevHint(prev.dur):''}</label><input type="number" value="${ex.dur}" placeholder="${prev?.dur||''}" oninput="sess.exercises[${i}].dur=this.value"></div>
-      ${isWallSit
-        ? `<div class="mf"><label>ROM (°)${prev?.rom?prevHint(prev.rom):''}</label><input type="number" value="${ex.rom||''}" min="0" max="180" placeholder="${prev?.rom||'—'}" oninput="sess.exercises[${i}].rom=this.value"></div>`
-        : `<div class="mf"><label>Level/Weerstand${prev?.weight?prevHint(prev.weight):''}</label><input type="number" value="${ex.weight}" placeholder="${prev?.weight||''}" oninput="sess.exercises[${i}].weight=this.value"></div>`
-      }
+      <div class="mf"><label>Level/Weerstand${prev?.weight?prevHint(prev.weight):''}</label><input type="number" value="${ex.weight}" placeholder="${prev?.weight||''}" oninput="sess.exercises[${i}].weight=this.value"></div>
+      <div class="mf" style="max-width:none;flex:3"><label>Notitie</label><input type="text" value="${ex.notes||''}" placeholder="Notitie" oninput="sess.exercises[${i}].notes=this.value" style="text-align:left"></div>
     </div>`;
   } else {
-    fields=`<div class="${info.w?'grid3':'grid3'}">
+    fields=`<div class="grid3" style="flex-wrap:wrap">
       <div class="mf"><label>Sets${prev?.sets?prevHint(prev.sets):''}</label><input type="number" value="${ex.sets}" placeholder="${prev?.sets||''}" oninput="sess.exercises[${i}].sets=this.value"></div>
       <div class="mf"><label>Reps${prev?.reps?prevHint(prev.reps):''}</label><input type="number" value="${ex.reps}" placeholder="${prev?.reps||''}" oninput="sess.exercises[${i}].reps=this.value"></div>
-      ${info.w?`<div class="mf"><label>Gewicht (kg)${prev?.weight?prevHint(prev.weight):''}</label><input type="number" value="${ex.weight}" step="0.5" placeholder="${prev?.weight||''}" oninput="sess.exercises[${i}].weight=this.value"></div>`:`<div class="mf"><label>ROM (°)${prev?.rom?prevHint(prev.rom):''}</label><input type="number" value="${ex.rom||''}" min="0" max="180" placeholder="${prev?.rom||'—'}" oninput="sess.exercises[${i}].rom=this.value"></div>`}
-    </div>
-    ${info.w?`<div class="grid2" style="margin-top:4px">
-      <div class="mf"><label>ROM (°)${prev?.rom?prevHint(prev.rom):''}</label><input type="number" value="${ex.rom||''}" min="0" max="180" placeholder="${prev?.rom||'—'}" oninput="sess.exercises[${i}].rom=this.value"></div>
+      ${info.w?`<div class="mf"><label>Gewicht (kg)${prev?.weight?prevHint(prev.weight):''}</label><input type="number" value="${ex.weight}" step="0.5" placeholder="${prev?.weight||''}" oninput="sess.exercises[${i}].weight=this.value"></div>`:''}
       <div class="mf" style="max-width:none;flex:3"><label>Notitie</label><input type="text" value="${ex.notes||''}" placeholder="Notitie" oninput="sess.exercises[${i}].notes=this.value" style="text-align:left"></div>
-    </div>`:''}`;
+    </div>`;
   }
 
   if(!isJump&&!isRun){
@@ -782,18 +901,32 @@ function exCard(ex,i){
           <input type="range" id="e_${i}" min="0" max="10" value="${ex.rpe??5}"></div>
         <div class="sl-hints"><span>Rust</span><span>Max</span></div>
       </div>
-    </div>
-    <div style="margin-top:5px">
-      <div class="mf" style="max-width:none"><label>Notitie</label><input type="text" value="${ex.notes||''}" placeholder="Notitie" oninput="sess.exercises[${i}].notes=this.value" style="text-align:left"></div>
     </div>`;
+  }
+
+  // Build a per-field reference block showing exactly what was logged last time
+  let prevBlock='';
+  if(prev && !isJump && !isRun && !isSpring){
+    const refs=[];
+    if(prev.sets!=null&&prev.sets!=='') refs.push({l:'Sets',v:prev.sets});
+    if(info.t==='reps'&&prev.reps!=null&&prev.reps!=='') refs.push({l:'Reps',v:prev.reps});
+    if(info.t==='hold'&&prev.hold!=null&&prev.hold!=='') refs.push({l:'Hold',v:`${prev.hold}s`});
+    if(info.t==='dur'&&prev.dur!=null&&prev.dur!=='') refs.push({l:'Duur',v:`${prev.dur}min`});
+    if(prev.weight!=null&&prev.weight!=='') refs.push({l:'Gewicht',v:`${prev.weight}kg`});
+    if(refs.length){
+      prevBlock=`<div style="background:var(--ok-l);border-radius:6px;padding:6px 10px;margin-bottom:8px;display:flex;gap:0;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:700;color:var(--ok);margin-right:8px;white-space:nowrap">↩ Vorige (${fds(prev._date)}):</span>
+        ${refs.map(r=>`<span style="font-size:12px;font-weight:600;color:var(--ok);margin-right:10px;white-space:nowrap">${r.l}: <span style="font-size:13px">${r.v}</span></span>`).join('')}
+      </div>`;
+    }
   }
 
   return `<div class="ex" id="ec_${i}" style="background:var(--surface2);border-radius:var(--rs);border:1.5px solid var(--border);margin-bottom:6px;padding:8px 10px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div class="ex-n">${ex.n}${prev?`<span style="font-size:10px;color:var(--ok);font-weight:500;margin-left:6px">↩ ${fds(prev._date)}</span>`:'<span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:6px">nieuw</span>'}</div>
-      <button class="btn bd bsm" style="width:auto;padding:4px 10px;font-size:12px" onclick="rmEx(${i})">✕</button>
+      <div class="ex-n">${ex.n}${!prev?'<span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:6px">nieuw</span>':''}</div>
+      <button class="btn bd bsm" style="width:auto;padding:4px 10px;font-size:12px;flex-shrink:0;margin-left:8px" onclick="rmEx(${i})">✕</button>
     </div>
-    ${fields}
+    ${prevBlock}${fields}
   </div>`;
 }
 
@@ -1263,8 +1396,10 @@ function rMore(){
     <div class="li" style="cursor:pointer" onclick="exportCSV()"><span style="font-size:14px;font-weight:500">📊 Export as CSV</span><span>→</span></div>
     <div class="li" style="cursor:pointer;border:none" onclick="exportJSON()"><span style="font-size:14px;font-weight:500">💾 Backup as JSON</span><span>→</span></div>
   </div>
-  <div class="st">Data</div>
+  <div class="st">Data overzetten (telefoon)</div>
   <div class="card" style="padding:10px">
+    <div class="li" style="cursor:pointer" onclick="showBackupCode()"><span style="font-size:14px;font-weight:500">📋 Backup code kopiëren</span><span>→</span></div>
+    <div class="li" style="cursor:pointer" onclick="showRestoreCode()"><span style="font-size:14px;font-weight:500">📋 Backup code plakken</span><span>→</span></div>
     <div class="li" style="cursor:pointer" onclick="importJSON()"><span style="font-size:14px;font-weight:500">📥 Restore from JSON</span><span>→</span></div>
     <div class="li" style="cursor:pointer;border:none" onclick="manageCustom()"><span style="font-size:14px;font-weight:500">⚙️ Custom Exercises</span><span>${getCustomEx().length} added</span></div>
   </div>
@@ -1498,6 +1633,47 @@ function dl(content,name,type){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([content],{type}));
   a.download=name; a.click();
+}
+
+function showBackupCode(){
+  const data={exportedAt:new Date().toISOString(),version:1,sessions:getSessions(),checkins:getCheckins(),customEx:getCustomEx()};
+  const code=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  el('mc').innerHTML=`<div class="ov" onclick="if(event.target===this)closeM()">
+    <div class="mod">
+      <div class="handle"></div>
+      <h2 style="font-size:16px;margin-bottom:6px">Backup code</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Houd de code ingedrukt en kies <strong>Kopieer</strong>. Ga daarna naar de nieuwe versie en kies "Backup code plakken".</p>
+      <textarea readonly style="width:100%;height:120px;font-size:11px;font-family:monospace;padding:8px;border-radius:var(--rs);border:1.5px solid var(--border);background:var(--surface2);color:var(--text);resize:none" onclick="this.select()">${code}</textarea>
+      <button class="btn bp" style="margin-top:10px" onclick="navigator.clipboard?.writeText('${code}').then(()=>toast('Gekopieerd!','ok')).catch(()=>toast('Selecteer tekst handmatig','info'))">📋 Kopieer naar klembord</button>
+    </div>
+  </div>`;
+}
+
+function showRestoreCode(){
+  el('mc').innerHTML=`<div class="ov" onclick="if(event.target===this)closeM()">
+    <div class="mod">
+      <div class="handle"></div>
+      <h2 style="font-size:16px;margin-bottom:6px">Backup code plakken</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Plak hier de backup code van je vorige versie.</p>
+      <textarea id="restoreInput" style="width:100%;height:120px;font-size:11px;font-family:monospace;padding:8px;border-radius:var(--rs);border:1.5px solid var(--border);background:var(--surface2);color:var(--text);resize:none" placeholder="Plak code hier..."></textarea>
+      <button class="btn bp" style="margin-top:10px" onclick="doRestoreCode()">📥 Importeer</button>
+    </div>
+  </div>`;
+}
+
+function doRestoreCode(){
+  try{
+    const raw=el('restoreInput').value.trim();
+    const d=JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if(!d.sessions||!d.checkins) throw 0;
+    if(!confirm(`${d.sessions.length} sessies + ${d.checkins.length} check-ins importeren? Wordt samengevoegd met huidige data.`)) return;
+    const es=getSessions(), ec=getCheckins();
+    d.sessions.forEach(s=>{ if(!es.find(x=>x.id===s.id)) es.push(s) });
+    d.checkins.forEach(c=>{ if(!ec.find(x=>x.date===c.date)) ec.push(c) });
+    LS.set('sessions',es); LS.set('checkins',ec);
+    if(d.customEx) LS.set('customEx',d.customEx);
+    closeM(); toast('Data geïmporteerd!','ok');
+  }catch{ toast('Ongeldige code, probeer opnieuw','err') }
 }
 
 function manageCustom(){
