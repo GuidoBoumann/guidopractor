@@ -1094,8 +1094,39 @@ function saveSess(){
     if(!sess.exercises.length){toast('Add at least one exercise','err');return}
   }
   saveSession(sess);
-  toast('Session saved!','ok');
-  sess=null; go('home');
+  sess=null;
+  showBackupPrompt();
+}
+
+function showBackupPrompt(){
+  el('mc').innerHTML=`<div class="ov mid" id="bpOv">
+    <div class="mod mid" style="text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">✅</div>
+      <h2 style="font-size:17px;margin-bottom:6px">Sessie opgeslagen!</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Maak een backup zodat je data veilig is. Safari kan opgeslagen data wissen.</p>
+      <button class="btn bp" style="margin-bottom:10px" onclick="shareBackup()">💾 Backup maken</button>
+      <button class="btn bg" onclick="closeM();go('home')">Overslaan</button>
+    </div>
+  </div>`;
+}
+
+async function shareBackup(){
+  const data={exportedAt:new Date().toISOString(),version:1,sessions:getSessions(),checkins:getCheckins(),customEx:getCustomEx()};
+  const json=JSON.stringify(data,null,2);
+  const filename=`guidopractor-backup-${td()}.json`;
+  // Use native share sheet on iOS (saves to Files/iCloud Drive)
+  if(navigator.share && navigator.canShare){
+    try{
+      const file=new File([json],filename,{type:'application/json'});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:'Guidopractor Backup'});
+        toast('Backup gedeeld!','ok'); closeM(); go('home'); return;
+      }
+    }catch(e){ if(e.name==='AbortError'){closeM();go('home');return} }
+  }
+  // Fallback: download
+  dl(json,filename,'application/json');
+  toast('Backup gedownload!','ok'); closeM(); go('home');
 }
 
 function clearSess(){ if(confirm('Clear session?')){sess=null;rLog()} }
@@ -1533,6 +1564,7 @@ function showAnal(){
 // ── MORE ─────────────────────────────────────────────────────
 function rMore(){
   el('scr').innerHTML=`
+  <button class="btn bs" style="margin-bottom:8px;font-size:16px" onclick="shareBackup()">💾 Backup maken</button>
   <button class="btn bp" style="margin-bottom:12px;font-size:16px" onclick="exportFysioReport()">📄 Weekrapport voor Fysio (PDF)</button>
   <div class="st">Export</div>
   <div class="card" style="padding:10px">
