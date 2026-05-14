@@ -894,12 +894,14 @@ function fmtPrev(prev,info){
   return p.join(' @ ');
 }
 
+function defaultReps(){ return (sess?.date||td()) <= '2026-05-24' ? 10 : 8; }
+
 function newEx(name){
   const prev=prevExData(name);
   return {
     n:name,
-    sets:  prev?.sets  ?? '',
-    reps:  prev?.reps  ?? '',
+    sets:  prev?.sets  ?? 4,
+    reps:  prev?.reps  ?? defaultReps(),
     weight:prev?.weight ?? '',
     hold:  prev?.hold  ?? '',
     dur:   prev?.dur   ?? '',
