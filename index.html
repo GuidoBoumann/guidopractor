@@ -230,15 +230,14 @@ input[type=range]::-moz-range-thumb{
 
 // ── CONSTANTS ───────────────────────────────────────────────
 const EX_LIB = [
-  {n:'Staand SLR',                           t:'reps'},
+  {n:'Staand SLR band',                       t:'reps'},
   {n:'Clam Shell',                            t:'reps'},
-  {n:'Side Raise',                            t:'reps'},
   {n:'Hamstring Roll op Bal',                t:'reps'},
   {n:'Copenhagen Hold',                      t:'hold'},
   {n:'Hiplock op Box',                       t:'reps', w:true},
   {n:'Leg Extension Hold',                   t:'hold'},
-  {n:'Wall Sit Hold',                        t:'dur'},
-  {n:'Straight Leg Raise extended hold',      t:'dur', w:true},
+  {n:'Wall Sit Hold',                        t:'hold'},
+  {n:'Spanish Squat Hold',                   t:'hold'},
   {n:'SLR dynamic',                           t:'reps', w:true},
   {n:'Single leg hip bridge on bench',            t:'reps', w:true},
   {n:'Hip Thruster',                         t:'reps', w:true},
@@ -282,12 +281,12 @@ const SCHEDS = {
     sections:[
       {
         label:'🔥 Activatie',
-        exercises:['Staand SLR','Clam Shell','Side Raise','Hamstring Roll op Bal',
-          'Copenhagen Hold','Hiplock op Box','Leg Extension Hold','Wall Sit Hold']
+        exercises:['Staand SLR band','Clam Shell','Hamstring Roll op Bal',
+          'Copenhagen Hold','Hiplock op Box','Leg Extension Hold','Wall Sit Hold','Spanish Squat Hold']
       },
       {
         label:'💪 Kracht',
-        exercises:['Straight Leg Raise extended hold','SLR dynamic','Single leg hip bridge on bench','Hip Thruster','Deadlift',
+        exercises:['SLR dynamic','Single leg hip bridge on bench','Hip Thruster','Deadlift',
           'Bulgarian Lunge','Single Leg Press','Squat']
       }
     ]
@@ -877,7 +876,8 @@ function fmtPrev(prev,info){
   if(info.t==='hold'){
     const p=[];
     if(+prev.sets>0) p.push(`${prev.sets}×`);
-    if(+prev.hold>0) p.push(`${prev.hold}s hold`);
+    if(+prev.hold>0) p.push(`${prev.hold}s`);
+    if(+prev.rom>0) p.push(`${prev.rom}°`);
     return p.join(' ');
   }
   if(info.t==='dur'){
@@ -937,9 +937,10 @@ function exCard(ex,i){
       <div style="font-size:13px;font-weight:600">${w.desc}</div>
       <div style="font-size:11px;color:var(--muted)">${w.total} min total</div></div>`).join('');
   } else if(info.t==='hold'){
-    fields=`<div class="grid2" style="flex-wrap:wrap">
+    fields=`<div class="grid3" style="flex-wrap:wrap">
       <div class="mf"><label>Sets${prev?.sets?prevHint(prev.sets):''}</label><input type="number" value="${ex.sets}" placeholder="${prev?.sets||''}" oninput="sess.exercises[${i}].sets=this.value"></div>
-      <div class="mf"><label>Hold (sec)${prev?.hold?prevHint(prev.hold):''}</label><input type="number" value="${ex.hold}" placeholder="${prev?.hold||''}" oninput="sess.exercises[${i}].hold=this.value"></div>
+      <div class="mf"><label>Duur (sec)${prev?.hold?prevHint(prev.hold):''}</label><input type="number" value="${ex.hold}" placeholder="${prev?.hold||''}" oninput="sess.exercises[${i}].hold=this.value"></div>
+      <div class="mf"><label>ROM (°)${prev?.rom?prevHint(prev.rom):''}</label><input type="number" value="${ex.rom||''}" min="0" max="180" placeholder="${prev?.rom||'—'}" oninput="sess.exercises[${i}].rom=this.value"></div>
       <div class="mf" style="max-width:none;flex:3"><label>Notitie</label><input type="text" value="${ex.notes||''}" placeholder="Notitie" oninput="sess.exercises[${i}].notes=this.value" style="text-align:left"></div>
     </div>`;
   } else if(info.t==='dur'){
@@ -982,7 +983,8 @@ function exCard(ex,i){
     const refs=[];
     if(prev.sets!=null&&prev.sets!=='') refs.push({l:'Sets',v:prev.sets});
     if(info.t==='reps'&&prev.reps!=null&&prev.reps!=='') refs.push({l:'Reps',v:prev.reps});
-    if(info.t==='hold'&&prev.hold!=null&&prev.hold!=='') refs.push({l:'Hold',v:`${prev.hold}s`});
+    if(info.t==='hold'&&prev.hold!=null&&prev.hold!=='') refs.push({l:'Duur',v:`${prev.hold}s`});
+    if(info.t==='hold'&&prev.rom!=null&&prev.rom!=='') refs.push({l:'ROM',v:`${prev.rom}°`});
     if(info.t==='dur'&&prev.dur!=null&&prev.dur!=='') refs.push({l:'Duur',v:`${prev.dur}min`});
     if(prev.weight!=null&&prev.weight!=='') refs.push({l:'Gewicht',v:`${prev.weight}kg`});
     if(refs.length){
