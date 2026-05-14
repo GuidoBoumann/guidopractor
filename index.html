@@ -1095,19 +1095,13 @@ function saveSess(){
   }
   saveSession(sess);
   sess=null;
-  showBackupPrompt();
+  autoBackup();
+  go('home');
 }
 
-function showBackupPrompt(){
-  el('mc').innerHTML=`<div class="ov mid" id="bpOv">
-    <div class="mod mid" style="text-align:center">
-      <div style="font-size:36px;margin-bottom:8px">✅</div>
-      <h2 style="font-size:17px;margin-bottom:6px">Sessie opgeslagen!</h2>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Maak een backup zodat je data veilig is. Safari kan opgeslagen data wissen.</p>
-      <button class="btn bp" style="margin-bottom:10px" onclick="shareBackup()">💾 Backup maken</button>
-      <button class="btn bg" onclick="closeM();go('home')">Overslaan</button>
-    </div>
-  </div>`;
+function autoBackup(){
+  const data={exportedAt:new Date().toISOString(),version:1,sessions:getSessions(),checkins:getCheckins(),customEx:getCustomEx()};
+  dl(JSON.stringify(data,null,2),`guidopractor-backup-${td()}.json`,'application/json');
 }
 
 async function shareBackup(){
