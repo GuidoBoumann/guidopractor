@@ -1441,41 +1441,70 @@ function mkC(id,cfg){
   charts[id]=new Chart(c,cfg);
 }
 
-function showLog(){
-  const sessions=getSessions().slice().reverse().slice(0,30);
-  const checkins=getCheckins().slice().reverse().slice(0,30);
-  if(!sessions.length&&!checkins.length){
+let logFilter='all';
+function showLog(filter){
+  if(filter!=null) logFilter=filter;
+  const allSessions=getSessions().slice().reverse();
+  const checkins=getCheckins().slice().reverse();
+  if(!allSessions.length&&!checkins.length){
     el('pc').innerHTML=`<div class="empty"><div class="ei">📋</div><p>No data yet.</p></div>`;return;
   }
-  el('pc').innerHTML=`
-  <div class="st">Recent Sessions</div>
-  ${sessions.length?sessions.map(s=>`
-    <div class="card" style="padding:11px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-        <div style="font-size:14px;font-weight:600">${fd(s.date)}</div>
-        <span class="badge bb">${(SCHEDS[s.sched]||SCHEDS.str).label.replace(/💪 |🎾 /,'')}</span>
-      </div>
-      ${s.exercises?.map(e=>{
+
+  const schedOpts=[
+    {k:'all',lbl:'Alle'},
+    {k:'str',lbl:'💪 S1'},
+    {k:'ftw',lbl:'🎾 S2'},
+    {k:'spr',lbl:'🦘 S3'},
+    {k:'run',lbl:'🏃 S4'},
+    {k:'other',lbl:'➕ Andere'},
+  ];
+  const filterBar=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
+    ${schedOpts.map(o=>`<button onclick="showLog('${o.k}')" style="padding:5px 11px;border-radius:20px;border:1.5px solid ${logFilter===o.k?'var(--primary)':'var(--border)'};background:${logFilter===o.k?'var(--primary-l)':'var(--surface2)'};color:${logFilter===o.k?'var(--primary)':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">${o.lbl}</button>`).join('')}
+  </div>`;
+
+  const sessions=logFilter==='all'?allSessions:allSessions.filter(s=>{
+    if(logFilter==='str') return s.sched==='str'||s.sched==='s1';
+    if(logFilter==='ftw') return s.sched==='ftw'||s.sched==='s2';
+    return s.sched===logFilter;
+  });
+
+  // Group sessions by month
+  const byMonth={};
+  sessions.forEach(s=>{
+    const m=s.date.slice(0,7);
+    if(!byMonth[m]) byMonth[m]=[];
+    byMonth[m].push(s);
+  });
+
+  const monthHtml=Object.keys(byMonth).sort().reverse().map(m=>{
+    const label=new Date(m+'-15').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+    const rows=byMonth[m].map(s=>{
+      const lbl=schedLabel(s.sched,s.extra);
+      const exRows=s.exercises?.map(e=>{
         let load='';
-        if(e.sets&&e.reps) load=`${e.sets}×${e.reps}${e.weight?` @${e.weight}kg`:''}`;
+        if(e.sets&&e.reps) load=`${e.sets}×${e.reps}${e.weight?` @ ${e.weight}kg`:''}`;
         else if(e.hold) load=`${e.sets||1}×${e.hold}s`;
         else if(e.dur) load=`${e.dur}min`;
-        return `<div style="font-size:13px;color:var(--muted);padding:2px 0">${e.n}${load?` — ${load}`:''}${e.pain>0?` <span style="color:var(--bad)">P${e.pain}</span>`:''}`;
-      }).join('')||''}
-      ${s.extra?`<div style="font-size:12px;color:var(--muted);margin-top:4px">+ ${s.extra}</div>`:''}
-    </div>`).join(''):`<div class="empty"><div class="ei">💪</div><p>No sessions logged yet.</p></div>`}
+        return `<div style="font-size:12px;color:var(--muted);padding:2px 0;display:flex;justify-content:space-between">
+          <span>${e.n}</span>
+          <span style="font-weight:600;color:var(--text)">${load}${e.pain>0?` <span style="color:var(--bad)">P${e.pain}</span>`:''}</span>
+        </div>`;
+      }).join('')||'';
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:700">${fd(s.date)}</span>
+          <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--primary-l);color:var(--primary)">${lbl.icon} ${lbl.text}</span>
+        </div>
+        ${exRows}
+        ${s.extra?`<div style="font-size:11px;color:var(--muted);margin-top:3px">+ ${s.extra}${s.otherDur?` · ${s.otherDur}min`:''}</div>`:''}
+        ${s.notes?`<div style="font-size:11px;color:var(--muted);margin-top:2px;font-style:italic">${s.notes}</div>`:''}
+      </div>`;
+    }).join('');
+    return `<div class="st">${label} <span style="font-weight:500;font-size:11px">(${byMonth[m].length} sessies)</span></div>
+    <div class="card" style="padding:4px 12px">${rows}</div>`;
+  }).join('');
 
-  <div class="st">Recent Check-ins</div>
-  ${checkins.length?checkins.map(c=>`
-    <div class="card" style="padding:11px">
-      <div style="font-size:14px;font-weight:600;margin-bottom:8px">${fd(c.date)}</div>
-      <div class="sg3">
-        <div class="sb" style="padding:8px"><div class="v" style="font-size:16px">${c.stiffness??'—'}</div><div class="l">Stiffness</div></div>
-        <div class="sb" style="padding:8px"><div class="v" style="font-size:16px">${c.swelling??'—'}</div><div class="l">Swelling</div></div>
-        <div class="sb" style="padding:8px"><div class="v" style="font-size:16px">${c.restingPain??'—'}</div><div class="l">Gem. Pijn</div></div>
-      </div>
-      ${c.journal?`<div style="font-size:13px;color:var(--muted);margin-top:8px">${c.journal.slice(0,80)}${c.journal.length>80?'…':''}</div>`:''}
-    </div>`).join(''):`<div class="empty"><div class="ei">📋</div><p>No check-ins yet.</p></div>`}`;
+  el('pc').innerHTML=filterBar+(monthHtml||`<div class="empty"><div class="ei">💪</div><p>Geen sessies gevonden.</p></div>`);
 }
 
 function showAnal(){
