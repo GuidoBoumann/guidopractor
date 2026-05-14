@@ -303,12 +303,24 @@ const SCHEDS = {
         exercises:['Calf Raises 1 Been','Trippeling Hiplock (side/voorwaarts)','Lunge op Teen + Waterbag',
           'Lunge Voorwaarts Stappen Waterbag','Lunge Uitvalspas Zijwaarts',
           'Zijwaarts op Tenen over Step','Van Step Afspringen 1 Been',
-          '2 Benen van Step Afspringen','Box Jump Counter','12-min Sprongprogramma','Running Scheme']
+          '2 Benen van Step Afspringen','Box Jump Counter']
       }
     ]
   },
+  spr: {
+    key:'spr', label:'🦘 Schema 3 — Sprongprogramma',
+    sections:[
+      {label:'🦘 Sprongprogramma', exercises:['12-min Sprongprogramma']}
+    ]
+  },
+  run: {
+    key:'run', label:'🏃 Schema 4 — Loopschema',
+    sections:[
+      {label:'🏃 Loopschema', exercises:['Running Scheme']}
+    ]
+  },
   other: {
-    key:'other', label:'🏃 Andere training',
+    key:'other', label:'➕ Andere training',
     sections:[]
   },
   // backward compat for old saved sessions
@@ -457,7 +469,9 @@ function showDisclaimer(){
 function schedLabel(sched,extra){
   if(sched==='str'||sched==='s1') return {icon:'💪',text:'Kracht'};
   if(sched==='ftw'||sched==='s2') return {icon:'🎾',text:'Footwork'};
-  if(sched==='other') return {icon:'🏃',text:extra||'Andere'};
+  if(sched==='spr') return {icon:'🦘',text:'Sprongprogramma'};
+  if(sched==='run') return {icon:'🏃',text:'Loopschema'};
+  if(sched==='other') return {icon:'➕',text:extra||'Andere'};
   return {icon:'💪',text:'Training'};
 }
 
@@ -482,6 +496,8 @@ function buildWeekStrip(sessions,checkins){
       s1:'background:#dbeafe;color:#1d4ed8',
       ftw:'background:#d1fae5;color:#065f46',
       s2:'background:#d1fae5;color:#065f46',
+      spr:'background:#ede9fe;color:#6d28d9',
+      run:'background:#fce7f3;color:#be185d',
       other:'background:#fef3c7;color:#92400e',
     };
     let sessionBadges='';
@@ -517,6 +533,8 @@ function rHome(){
   const ap=avg(allPain), as=avg(c7.map(c=>c.swelling).filter(v=>v!=null));
   const wStr=s7.filter(s=>s.sched==='str'||s.sched==='s1').length;
   const wFtw=s7.filter(s=>s.sched==='ftw'||s.sched==='s2').length;
+  const wSpr=s7.filter(s=>s.sched==='spr').length;
+  const wRun=s7.filter(s=>s.sched==='run').length;
   const wOth=s7.filter(s=>s.sched==='other').length;
 
   const streak=calcStreak(sessions,checkins);
@@ -539,7 +557,7 @@ function rHome(){
     </div>
     ${buildWeekStrip(sessions,checkins)}
     <div style="display:flex;gap:14px;justify-content:center;margin-top:7px;font-size:10px;color:var(--muted)">
-      <span>💪 Kracht &nbsp;🎾 Footwork &nbsp;🏃 Andere</span>
+      <span>💪 Kracht &nbsp;🎾 Footwork &nbsp;🦘 Sprong &nbsp;🏃 Loop &nbsp;➕ Andere</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok)"></span>check-in</span>
     </div>
   </div>
@@ -551,18 +569,21 @@ function rHome(){
   </div>
 
   <div class="st">Deze week getraind</div>
-  <div class="sg3">
-    <div class="sb" style="cursor:pointer" onclick="go('log')">
-      <div class="v">${wStr}</div>
-      <div class="l">💪 Schema 1<br>Kracht</div>
+  <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px">
+    <div class="sb" style="cursor:pointer;flex:1;min-width:80px" onclick="go('log')">
+      <div class="v">${wStr}</div><div class="l">💪 S1 Kracht</div>
     </div>
-    <div class="sb" style="cursor:pointer" onclick="go('log')">
-      <div class="v">${wFtw}</div>
-      <div class="l">🎾 Schema 2<br>Footwork</div>
+    <div class="sb" style="cursor:pointer;flex:1;min-width:80px" onclick="go('log')">
+      <div class="v">${wFtw}</div><div class="l">🎾 S2 Footwork</div>
     </div>
-    <div class="sb" style="cursor:pointer" onclick="go('log')">
-      <div class="v">${wOth}</div>
-      <div class="l">🏃 Andere<br>Training</div>
+    <div class="sb" style="cursor:pointer;flex:1;min-width:80px" onclick="go('log')">
+      <div class="v">${wSpr}</div><div class="l">🦘 S3 Sprong</div>
+    </div>
+    <div class="sb" style="cursor:pointer;flex:1;min-width:80px" onclick="go('log')">
+      <div class="v">${wRun}</div><div class="l">🏃 S4 Loop</div>
+    </div>
+    <div class="sb" style="cursor:pointer;flex:1;min-width:80px" onclick="go('log')">
+      <div class="v">${wOth}</div><div class="l">➕ Andere</div>
     </div>
   </div>
 
@@ -658,7 +679,7 @@ function renderLogUI(){
   </div>
   <div class="f"><label>Schema</label>
     <select onchange="switchSched(this.value)" style="font-size:15px;font-weight:600">
-      ${['str','ftw','other'].map(k=>{const s=SCHEDS[k]; const active=sess.sched===k||(sess.sched==='s1'&&k==='str')||(sess.sched==='s2'&&k==='ftw');
+      ${['str','ftw','spr','run','other'].map(k=>{const s=SCHEDS[k]; const active=sess.sched===k||(sess.sched==='s1'&&k==='str')||(sess.sched==='s2'&&k==='ftw');
         return `<option value="${k}" ${active?'selected':''}>${s.label}</option>`;
       }).join('')}
     </select>
