@@ -647,7 +647,7 @@ function generateAnalysis(sessions,checkins){
 
 // ── LOG SESSION ──────────────────────────────────────────────
 function rLog(){
-  if(!sess) sess={date:td(),sched:'str',exercises:[],extra:'',notes:''};
+  if(!sess) sess={date:td(),sched:'str',exercises:[],removed:[],extra:'',notes:''};
   renderLogUI();
 }
 
@@ -710,7 +710,7 @@ function buildExList(){
 
   // Ensure all schedule exercises exist in session (preserving order)
   sched.sections.forEach(sec=>{
-    sec.exercises.forEach(n=>{ if(!sess.exercises.find(e=>e.n===n)) sess.exercises.push(newEx(n)); });
+    sec.exercises.forEach(n=>{ if(!sess.exercises.find(e=>e.n===n)&&!(sess.removed||[]).includes(n)) sess.exercises.push(newEx(n)); });
   });
 
   // Last-session overview for this schedule
@@ -986,9 +986,14 @@ function exCard(ex,i){
 function setJS(i,id){ sess.exercises[i].jstage=id; buildExList(); }
 function setSS(i,id){ sess.exercises[i].sstage=id; buildExList(); }
 function setRW(i,w){ sess.exercises[i].rweek=w; buildExList(); }
-function rmEx(i){ sess.exercises.splice(i,1); buildExList(); }
+function rmEx(i){
+  const name=sess.exercises[i]?.n;
+  sess.exercises.splice(i,1);
+  if(name){ sess.removed=sess.removed||[]; if(!sess.removed.includes(name)) sess.removed.push(name); }
+  buildExList();
+}
 
-function switchSched(s){ sess.sched=s; sess.exercises=[]; renderLogUI(); }
+function switchSched(s){ sess.sched=s; sess.exercises=[]; sess.removed=[]; renderLogUI(); }
 
 function showAddEx(){
   const all=[...EX_LIB,...getCustomEx().map(n=>({n,t:'reps',w:true}))];
