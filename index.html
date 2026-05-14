@@ -238,7 +238,8 @@ const EX_LIB = [
   {n:'Hiplock op Box',                       t:'reps', w:true},
   {n:'Leg Extension Hold',                   t:'hold'},
   {n:'Wall Sit Hold',                        t:'dur'},
-  {n:'SLR 5kg',                              t:'dur'},
+  {n:'Straight Leg Raise extended hold',      t:'dur', w:true},
+  {n:'SLR dynamic',                           t:'reps', w:true},
   {n:'Hip Bridge 1 Been (5 sec)',            t:'hold'},
   {n:'Hip Thruster',                         t:'reps', w:true},
   {n:'Deadlift',                             t:'reps', w:true},
@@ -286,7 +287,7 @@ const SCHEDS = {
       },
       {
         label:'💪 Kracht',
-        exercises:['SLR 5kg','Hip Bridge 1 Been (5 sec)','Hip Thruster','Deadlift',
+        exercises:['Straight Leg Raise extended hold','SLR dynamic','Hip Bridge 1 Been (5 sec)','Hip Thruster','Deadlift',
           'Bulgarian Lunge','Single Leg Press','Squat']
       }
     ]
@@ -944,7 +945,7 @@ function exCard(ex,i){
   } else if(info.t==='dur'){
     fields=`<div class="grid2" style="flex-wrap:wrap">
       <div class="mf"><label>Duur (min)${prev?.dur?prevHint(prev.dur):''}</label><input type="number" value="${ex.dur}" placeholder="${prev?.dur||''}" oninput="sess.exercises[${i}].dur=this.value"></div>
-      <div class="mf"><label>Level/Weerstand${prev?.weight?prevHint(prev.weight):''}</label><input type="number" value="${ex.weight}" placeholder="${prev?.weight||''}" oninput="sess.exercises[${i}].weight=this.value"></div>
+      <div class="mf"><label>${info.w?'Gewicht (kg)':'Level/Weerstand'}${prev?.weight?prevHint(prev.weight):''}</label><input type="number" value="${ex.weight}" placeholder="${prev?.weight||''}" oninput="sess.exercises[${i}].weight=this.value"></div>
       <div class="mf" style="max-width:none;flex:3"><label>Notitie</label><input type="text" value="${ex.notes||''}" placeholder="Notitie" oninput="sess.exercises[${i}].notes=this.value" style="text-align:left"></div>
     </div>`;
   } else {
