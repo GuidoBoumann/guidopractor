@@ -813,6 +813,24 @@ function buildExList(){
     if(!schedNames.includes(ex.n)) html+=exCard(ex,i);
   });
 
+  // Collapsed "Niet gedaan" restore section
+  const removed=sess.removed||[];
+  if(removed.length){
+    html+=`<div style="margin-top:12px">
+      <button onclick="toggleSkipped()" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rs);cursor:pointer;font-family:inherit">
+        <span style="font-size:13px;font-weight:600;color:var(--muted)">Niet gedaan</span>
+        <span style="font-size:12px;font-weight:700;color:var(--muted)" id="skippedBadge">${removed.length} ▾</span>
+      </button>
+      <div id="skippedList" style="display:none;border:1.5px solid var(--border);border-top:none;border-radius:0 0 var(--rs) var(--rs);overflow:hidden">
+        ${removed.map(name=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;color:var(--muted)">${name}</span>
+            <button onclick="restoreEx('${name.replace(/'/g,"\\'")}')" style="padding:4px 12px;border-radius:20px;border:1.5px solid var(--ok);background:var(--ok-l);color:var(--ok);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">+ Herstel</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
   listEl.innerHTML=html;
   sess.exercises.forEach((_,i)=>{
     sl(`p_${i}`,v=>{ sess.exercises[i].pain=+v; el(`pv_${i}`).textContent=v; colorPain(i,+v); });
@@ -990,6 +1008,19 @@ function rmEx(i){
   const name=sess.exercises[i]?.n;
   sess.exercises.splice(i,1);
   if(name){ sess.removed=sess.removed||[]; if(!sess.removed.includes(name)) sess.removed.push(name); }
+  buildExList();
+}
+
+function toggleSkipped(){
+  const list=el('skippedList'), badge=el('skippedBadge');
+  if(!list) return;
+  const open=list.style.display==='block';
+  list.style.display=open?'none':'block';
+  badge.textContent=(sess.removed||[]).length+(open?' ▾':' ▴');
+}
+
+function restoreEx(name){
+  sess.removed=(sess.removed||[]).filter(n=>n!==name);
   buildExList();
 }
 
